@@ -2,8 +2,6 @@
 
 DevSwarm is a cutting-edge **multi-agent virtual office** where AI agents collaborate, think, and execute tasks in real-time. Built with a robust monorepo architecture, it simulation-driven dashboard allows you to visualize the inner workings of an AI-powered engineering team.
 
-![DevSwarm Dashboard](/documentation/assets/dashboard_preview.png)
-
 ## 🌟 Key Features
 
 - **Real-Time Visualization**: Watch agents move between rooms (Desks, Lounge, Server Room, Private Office) based on their current tasks.
@@ -124,4 +122,4 @@ PYTHONPATH=. pytest tests/agents/test_agent_probabilistic.py
 ---
 
 ## 📄 License
-MIT License - Copyright (c) 2026 Matthew & DevSwarm Team.
+MIT License - Copyright (c) 2026 Matthew
