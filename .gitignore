@@ -1,0 +1,28 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+.next/
+out/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Go
+backend/tmp/
+
+# Docker
+pgdata/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store

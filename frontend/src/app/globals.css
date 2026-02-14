@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+/* ── Tailwind v4 Theme ── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* DevSwarm palette */
+  --color-surface: #0a0a0a;
+  --color-surface-2: #111111;
+  --color-surface-3: #1a1a1a;
+  --color-edge: #262626;
+  --color-accent: #8b5cf6;
+  --color-ok: #10b981;
+  --color-warn: #f59e0b;
+  --color-err: #ef4444;
+}
+
+:root {
+  --background: #050505;
+  --foreground: #f5f5f5;
+}
+
+/* ── Base ── */
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+
+/* ── Animations ── */
+
+@keyframes status-pulse {
+  0%, 100% { box-shadow: 0 0 0   currentColor; }
+  50%      { box-shadow: 0 0 18px currentColor; }
+}
+.animate-status-pulse { animation: status-pulse 2s ease-in-out infinite; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.animate-float { animation: float 3s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,.04) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+@keyframes grain {
+  0%,100% { transform: translate(0,0); }
+  10%     { transform: translate(-2%,-3%); }
+  35%     { transform: translate(3%,2%); }
+  55%     { transform: translate(-1%,3%); }
+  75%     { transform: translate(2%,-2%); }
+}
+
+/* ── Glass card ── */
+.glass {
+  background: rgba(17,17,17,.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* ── Grid ── */
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1fr 1.6fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 768px) {
+  .room-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+}
+
+.kanban-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+@media (max-width: 1024px) { .kanban-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px)  { .kanban-grid { grid-template-columns: 1fr; } }
