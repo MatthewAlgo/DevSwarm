@@ -109,4 +109,4 @@ class AgentCostRecord(BaseModel):
     input_tokens: int = 0
     output_tokens: int = 0
     cost_usd: float = 0.0
-    model: str = "gemini-1.5-flash"
+    model: str = "gemini-3-flash-preview"

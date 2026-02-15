@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"devswarm-backend/internal/cache"
 	"devswarm-backend/internal/db"
 	"devswarm-backend/internal/state"
 
@@ -115,6 +116,9 @@ func UpdateAgent(w http.ResponseWriter, r *http.Request) {
 	})
 
 	respondJSON(w, http.StatusOK, agent)
+
+	// Notify Redis subscribers of state change
+	cache.PublishStateChanged(r.Context())
 }
 
 // --- Task Handlers ---
@@ -173,6 +177,9 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	})
 
 	respondJSON(w, http.StatusCreated, map[string]string{"id": id})
+
+	// Notify Redis subscribers of state change
+	cache.PublishStateChanged(r.Context())
 }
 
 // UpdateTaskStatus changes a task's kanban status.
@@ -195,6 +202,9 @@ func UpdateTaskStatus(w http.ResponseWriter, r *http.Request) {
 	db.IncrementStateVersion(r.Context())
 
 	respondJSON(w, http.StatusOK, map[string]string{"status": "updated"})
+
+	// Notify Redis subscribers of state change
+	cache.PublishStateChanged(r.Context())
 }
 
 // --- Message Handlers ---
@@ -236,6 +246,9 @@ func CreateMessage(w http.ResponseWriter, r *http.Request) {
 	db.IncrementStateVersion(r.Context())
 
 	respondJSON(w, http.StatusCreated, map[string]string{"id": id})
+
+	// Notify Redis subscribers of state change
+	cache.PublishStateChanged(r.Context())
 }
 
 // --- State Handlers ---

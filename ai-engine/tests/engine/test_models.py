@@ -157,7 +157,7 @@ class TestAgentCostRecord:
         assert cost.input_tokens == 0
         assert cost.output_tokens == 0
         assert cost.cost_usd == 0.0
-        assert cost.model == "gemini-1.5-flash"
+        assert cost.model == "gemini-3-flash-preview"
 
     def test_full(self):
         cost = AgentCostRecord(

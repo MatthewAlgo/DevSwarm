@@ -122,11 +122,19 @@ async def get_state_version() -> int:
 
 
 async def increment_state_version() -> None:
-    """Bump the state version to trigger WebSocket broadcast."""
+    """Bump the state version to trigger WebSocket broadcast.
+    Also publishes to Redis for instant notifications.
+    """
     pool = await get_pool()
     await pool.execute(
         "UPDATE office_state SET version = version + 1, updated_at = NOW() WHERE id = 1"
     )
+    # Notify via Redis pub/sub for instant broadcast
+    try:
+        import redis_client
+        await redis_client.publish_state_changed()
+    except Exception as e:
+        logger.debug("Redis pub/sub notify skipped (non-fatal): %s", e)
 
 
 async def update_global_state(state_data: dict) -> None:

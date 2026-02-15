@@ -15,6 +15,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"devswarm-backend/internal/api"
+	"devswarm-backend/internal/cache"
 	"devswarm-backend/internal/db"
 	"devswarm-backend/internal/hub"
 	"devswarm-backend/internal/state"
@@ -34,13 +35,20 @@ func main() {
 	}
 	defer db.Close()
 
+	// Connect to Redis
+	if err := cache.Connect(); err != nil {
+		log.Printf("[Main] Redis connection failed (non-fatal, falling back to DB polling): %v", err)
+	} else {
+		defer cache.Close()
+	}
+
 	// Create WebSocket hub
 	wsHub := hub.New()
 	go wsHub.Run()
 	log.Println("[Main] WebSocket Hub started")
 
-	// Create and start state poller
-	poller := state.NewPoller(wsHub.Broadcast, db.GetFullState, 1*time.Second)
+	// Create and start state poller (30s heartbeat, Redis pub/sub handles instant updates)
+	poller := state.NewPoller(wsHub.Broadcast, db.GetFullState, 30*time.Second)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go poller.Start(ctx)
