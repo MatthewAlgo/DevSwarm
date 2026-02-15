@@ -8,6 +8,7 @@ langchain-core==0.3.28
 langchain-google-genai==2.0.8
 mcp==1.2.0
 python-dotenv==1.0.1
+redis[hiredis]==5.2.1
 # Testing
 pytest==8.3.4
 pytest-asyncio==0.24.0

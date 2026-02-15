@@ -41,9 +41,69 @@ async def lifespan(app: FastAPI):
     logger.info("=== DevSwarm AI Engine Starting ===")
     await db.get_pool()
     logger.info("Database pool initialized")
+
+    # Initialize Redis
+    try:
+        import redis_client
+        await redis_client.get_redis()
+        await redis_client.ensure_consumer_group()
+        logger.info("Redis initialized with consumer group")
+
+        # Start background task queue worker
+        worker_task = asyncio.create_task(_task_queue_worker())
+    except Exception as e:
+        logger.warning(f"Redis initialization failed (non-fatal): {e}")
+        worker_task = None
+
     yield
+
+    # Shutdown
+    if worker_task:
+        worker_task.cancel()
+        try:
+            await worker_task
+        except asyncio.CancelledError:
+            pass
+
+    try:
+        import redis_client
+        await redis_client.close_redis()
+    except Exception:
+        pass
+
     await db.close_pool()
     logger.info("=== DevSwarm AI Engine Shutting Down ===")
+
+
+async def _task_queue_worker():
+    """Background worker that consumes tasks from the Redis Stream."""
+    import redis_client
+    logger.info("[Worker] Task queue worker started")
+
+    while True:
+        try:
+            tasks = await redis_client.dequeue_tasks(count=1, block_ms=5000)
+            for task in tasks:
+                logger.info(f"[Worker] Processing task: {task['goal'][:60]}")
+                try:
+                    initial_state = create_initial_state(task["goal"])
+                    await _run_graph(initial_state, task["goal"])
+                    await redis_client.ack_task(task["id"])
+                    logger.info(f"[Worker] Task completed: {task['id']}")
+                except Exception as e:
+                    logger.error(f"[Worker] Task failed: {task['id']} — {e}")
+                    await redis_client.ack_task(task["id"])  # Ack to prevent redelivery loop
+                    await db.log_activity("system", "task_queue_error", {
+                        "task_id": task["id"],
+                        "goal": task["goal"],
+                        "error": str(e),
+                    })
+        except asyncio.CancelledError:
+            logger.info("[Worker] Task queue worker shutting down")
+            return
+        except Exception as e:
+            logger.error(f"[Worker] Stream read error: {e}")
+            await asyncio.sleep(2)  # Back off on errors
 
 
 # --- App ---
@@ -195,14 +255,26 @@ async def override_state(req: StateOverrideRequest):
 
 @app.post("/api/trigger")
 async def trigger_task(req: TriggerTaskRequest):
-    """Trigger the LangGraph workflow with a new goal."""
+    """Trigger the LangGraph workflow with a new goal.
+    Uses Redis Streams for durable, queued task execution.
+    Falls back to asyncio.create_task if Redis is unavailable.
+    """
     try:
-        initial_state = create_initial_state(req.goal)
-
-        # Run the graph asynchronously (don't block the request)
-        asyncio.create_task(_run_graph(initial_state, req.goal))
-
-        return {"status": "triggered", "goal": req.goal}
+        # Try Redis-based queuing first
+        try:
+            import redis_client
+            msg_id = await redis_client.enqueue_task(
+                goal=req.goal,
+                priority=req.priority,
+                assigned_to=req.assigned_to,
+            )
+            return {"status": "queued", "goal": req.goal, "queue_id": msg_id}
+        except Exception as redis_err:
+            logger.warning(f"Redis enqueue failed, falling back to direct execution: {redis_err}")
+            # Fallback: fire-and-forget
+            initial_state = create_initial_state(req.goal)
+            asyncio.create_task(_run_graph(initial_state, req.goal))
+            return {"status": "triggered", "goal": req.goal}
     except Exception as e:
         logger.error(f"Trigger error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

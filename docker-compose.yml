@@ -18,6 +18,18 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   ai-engine:
     build:
       context: ./ai-engine
@@ -26,10 +38,13 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
     ports:
       - "8000:8000"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     volumes:
       - ./ai-engine:/app
@@ -42,10 +57,13 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL_GO}
       - AI_ENGINE_URL=http://ai-engine:8000
+      - REDIS_URL=redis://redis:6379/0
     ports:
       - "8080:8080"
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       ai-engine:
         condition: service_started
@@ -71,3 +89,4 @@ services:
 
 volumes:
   pgdata:
+  redisdata:
