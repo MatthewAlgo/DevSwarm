@@ -11,7 +11,7 @@ interface Props {
     size?: "sm" | "md" | "lg";
 }
 
-const DIM = { sm: 52, md: 64, lg: 80 } as const;
+const DIM = { sm: 52, md: 72, lg: 88 } as const;
 
 export default function AgentAvatar({
     agent,
@@ -56,9 +56,10 @@ export default function AgentAvatar({
             whileTap={{ scale: 0.94 }}
             className="relative cursor-pointer select-none group focus:outline-none"
             style={{
-                width: d,
-                height: d,
-                borderRadius: "24%",
+                minWidth: d,
+                minHeight: d,
+                padding: size === "sm" ? 6 : 10,
+                borderRadius: "20%",
                 border: `2px solid ${t.ring}`,
                 background: `linear-gradient(135deg, ${agent.avatarColor}18, ${agent.avatarColor}08)`,
                 display: "flex",
@@ -87,7 +88,7 @@ export default function AgentAvatar({
             {/* Role label (md+) */}
             {size !== "sm" && (
                 <span
-                    className="text-[8px] leading-none tracking-wider text-neutral-500 uppercase pointer-events-none max-w-[90%] truncate"
+                    className="text-[8px] leading-tight tracking-wider text-neutral-500 uppercase pointer-events-none text-center px-1"
                 >
                     {agent.role}
                 </span>
@@ -111,7 +112,7 @@ export default function AgentAvatar({
                 <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[7px] text-neutral-600 max-w-[80px] truncate whitespace-nowrap"
+                    className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[7px] text-neutral-600 max-w-[120px] text-center whitespace-nowrap overflow-hidden text-ellipsis"
                 >
                     {agent.currentTask}
                 </motion.span>
