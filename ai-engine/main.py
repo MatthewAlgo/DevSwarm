@@ -105,6 +105,8 @@ async def _task_queue_worker():
             logger.error(f"[Worker] Stream read error: {e}")
             await asyncio.sleep(2)  # Back off on errors
 
+# Strong references to background tasks to prevent GC from dropping them
+_background_tasks: set[asyncio.Task] = set()
 
 # --- App ---
 
@@ -271,9 +273,11 @@ async def trigger_task(req: TriggerTaskRequest):
             return {"status": "queued", "goal": req.goal, "queue_id": msg_id}
         except Exception as redis_err:
             logger.warning(f"Redis enqueue failed, falling back to direct execution: {redis_err}")
-            # Fallback: fire-and-forget
+            # Fallback: direct execution with strong reference to prevent GC
             initial_state = create_initial_state(req.goal)
-            asyncio.create_task(_run_graph(initial_state, req.goal))
+            task = asyncio.create_task(_run_graph(initial_state, req.goal))
+            _background_tasks.add(task)
+            task.add_done_callback(_background_tasks.discard)
             return {"status": "triggered", "goal": req.goal}
     except Exception as e:
         logger.error(f"Trigger error: {e}")

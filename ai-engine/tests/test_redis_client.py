@@ -217,4 +217,4 @@ class TestConstants:
 
     def test_consumer_group_name(self):
         assert redis_client.CONSUMER_GROUP == "ai_engine_workers"
-        assert redis_client.CONSUMER_NAME == "worker_1"
+        assert redis_client.CONSUMER_NAME.startswith("worker_")

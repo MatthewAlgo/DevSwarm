@@ -133,8 +133,8 @@ async def increment_state_version() -> None:
     try:
         import redis_client
         await redis_client.publish_state_changed()
-    except Exception:
-        pass  # Redis is optional; DB version bump is enough for fallback polling
+    except Exception as e:
+        logger.debug("Redis pub/sub notify skipped (non-fatal): %s", e)
 
 
 async def update_global_state(state_data: dict) -> None:

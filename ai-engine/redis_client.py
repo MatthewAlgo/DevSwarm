@@ -7,6 +7,7 @@ import asyncio
 import json
 import logging
 import os
+import uuid
 from typing import Any, Optional
 
 import redis.asyncio as aioredis
@@ -20,7 +21,7 @@ AGENT_EVENT_CHANNEL = "devswarm:agent_events"
 
 # Consumer group for the AI engine workers
 CONSUMER_GROUP = "ai_engine_workers"
-CONSUMER_NAME = "worker_1"
+CONSUMER_NAME = os.getenv("WORKER_NAME", f"worker_{uuid.uuid4().hex[:8]}")
 
 _pool: Optional[aioredis.Redis] = None
 

@@ -83,6 +83,9 @@ func PublishStateChanged(ctx context.Context) error {
 
 // Subscribe returns a pubsub subscription for the given channels.
 func Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
+	if client == nil {
+		return nil
+	}
 	return client.Subscribe(ctx, channels...)
 }
 
