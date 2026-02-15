@@ -165,4 +165,4 @@ class TestAgentCostRecord:
             output_tokens=500, cost_usd=0.005,
             model="gemini-2.0-flash",
         )
-        assert cost.model == "gemini-3-flash-preview"
+        assert cost.model == "gemini-2.0-flash"
