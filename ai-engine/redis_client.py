@@ -3,7 +3,6 @@ DevSwarm AI Engine - Redis Client
 Async Redis operations for pub/sub, task queuing (Streams), and caching.
 """
 
-import asyncio
 import json
 import logging
 import os
@@ -58,6 +57,7 @@ async def ping() -> bool:
 
 # --- Pub/Sub ---
 
+
 async def publish(channel: str, message: str) -> int:
     """Publish a message to a Redis channel."""
     r = await get_redis()
@@ -69,24 +69,45 @@ async def publish_state_changed() -> int:
     return await publish(STATE_CHANGED_CHANNEL, "state_updated")
 
 
-async def publish_agent_event(agent_id: str, event_type: str, data: dict | None = None) -> int:
+async def publish_agent_event(
+    agent_id: str, event_type: str, data: dict | None = None
+) -> int:
     """Publish an agent event for real-time tracking."""
-    payload = json.dumps({
-        "agent_id": agent_id,
-        "event": event_type,
-        "data": data or {},
-    })
+    payload = json.dumps(
+        {
+            "agent_id": agent_id,
+            "event": event_type,
+            "data": data or {},
+        }
+    )
+    return await publish(AGENT_EVENT_CHANNEL, payload)
+
+
+async def publish_delta(category: str, item_id: str, data: dict) -> int:
+    """Publish a granular delta update for a specific category (agents/tasks/messages)."""
+    payload = json.dumps(
+        {
+            "type": "DELTA_UPDATE",
+            "category": category,
+            "id": item_id,
+            "data": data,
+        }
+    )
+    # Using AGENT_EVENT_CHANNEL for all real-time deltas
     return await publish(AGENT_EVENT_CHANNEL, payload)
 
 
 # --- Task Queue (Redis Streams) ---
+
 
 async def ensure_consumer_group():
     """Create the consumer group for the task queue if it doesn't exist."""
     r = await get_redis()
     try:
         await r.xgroup_create(TASK_QUEUE_STREAM, CONSUMER_GROUP, id="0", mkstream=True)
-        logger.info(f"Consumer group '{CONSUMER_GROUP}' created for stream '{TASK_QUEUE_STREAM}'")
+        logger.info(
+            f"Consumer group '{CONSUMER_GROUP}' created for stream '{TASK_QUEUE_STREAM}'"
+        )
     except aioredis.ResponseError as e:
         if "BUSYGROUP" in str(e):
             pass  # Group already exists
@@ -94,7 +115,9 @@ async def ensure_consumer_group():
             raise
 
 
-async def enqueue_task(goal: str, priority: int = 0, assigned_to: list[str] | None = None) -> str:
+async def enqueue_task(
+    goal: str, priority: int = 0, assigned_to: list[str] | None = None
+) -> str:
     """Add a task to the Redis Stream for async processing."""
     r = await get_redis()
     task_data = {
@@ -128,12 +151,14 @@ async def dequeue_tasks(count: int = 1, block_ms: int = 5000) -> list[dict]:
     if results:
         for stream_name, messages in results:
             for msg_id, data in messages:
-                tasks.append({
-                    "id": msg_id,
-                    "goal": data.get("goal", ""),
-                    "priority": int(data.get("priority", "0")),
-                    "assigned_to": json.loads(data.get("assigned_to", "[]")),
-                })
+                tasks.append(
+                    {
+                        "id": msg_id,
+                        "goal": data.get("goal", ""),
+                        "priority": int(data.get("priority", "0")),
+                        "assigned_to": json.loads(data.get("assigned_to", "[]")),
+                    }
+                )
     return tasks
 
 
@@ -144,6 +169,7 @@ async def ack_task(msg_id: str) -> int:
 
 
 # --- Caching ---
+
 
 async def cache_set(key: str, value: Any, ttl_seconds: int = 30) -> bool:
     """Store a value in Redis cache with TTL."""

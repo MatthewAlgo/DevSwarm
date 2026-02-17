@@ -6,7 +6,6 @@ import pytest
 import json
 
 from mcp_server import (
-    unified_mcp,
     AGENT_MCP_SERVERS,
     get_mcp_server,
     list_all_tools,
@@ -37,7 +36,9 @@ class TestGetMCPServer:
         server = get_mcp_server("nonexistent")
         assert server is None
 
-    @pytest.mark.parametrize("agent_id", ["marco", "jimmy", "mona", "dan", "tonny", "bob", "ariani", "peter"])
+    @pytest.mark.parametrize(
+        "agent_id", ["marco", "jimmy", "mona", "dan", "tonny", "bob", "ariani", "peter"]
+    )
     def test_all_agents_retrievable(self, agent_id):
         assert get_mcp_server(agent_id) is not None
 
@@ -61,24 +62,28 @@ class TestListAllTools:
 class TestCallAgent:
     async def test_valid_agent(self):
         from mcp_server import call_agent
+
         result = await call_agent("marco", "create_task", '{"title": "Test"}')
         assert "marco" in result
         assert "create_task" in result
 
     async def test_invalid_agent(self):
         from mcp_server import call_agent
+
         result = await call_agent("nonexistent", "test_tool")
         assert "Error" in result
         assert "not found" in result
 
     async def test_invalid_json_params(self):
         from mcp_server import call_agent
+
         result = await call_agent("marco", "create_task", "{invalid_json}")
         assert "Error" in result
         assert "Invalid JSON" in result
 
     async def test_empty_params(self):
         from mcp_server import call_agent
+
         result = await call_agent("marco", "assign_agent")
         assert "marco" in result
 
@@ -87,6 +92,7 @@ class TestCallAgent:
 class TestListAvailableTools:
     async def test_returns_json_string(self):
         from mcp_server import list_available_tools
+
         result = await list_available_tools()
         parsed = json.loads(result)
         assert isinstance(parsed, dict)

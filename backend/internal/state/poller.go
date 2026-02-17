@@ -47,11 +47,11 @@ func (p *Poller) Start(ctx context.Context) {
 	p.poll(ctx)
 
 	// Try to subscribe to Redis pub/sub
-	redisSub := cache.Subscribe(ctx, cache.StateChangedChannel)
+	redisSub := cache.Subscribe(ctx, cache.StateChangedChannel, cache.AgentEventChannel)
 	if redisSub != nil {
 		defer redisSub.Close()
 		redisCh := redisSub.Channel()
-		log.Println("[Poller] Subscribed to Redis pub/sub channel:", cache.StateChangedChannel)
+		log.Printf("[Poller] Subscribed to Redis channels: %s, %s", cache.StateChangedChannel, cache.AgentEventChannel)
 
 		// Heartbeat ticker (fallback, less frequent)
 		ticker := time.NewTicker(p.interval)
@@ -62,9 +62,15 @@ func (p *Poller) Start(ctx context.Context) {
 			case <-ctx.Done():
 				log.Println("[Poller] Shutting down")
 				return
-			case <-redisCh:
-				// Redis notified us of a state change — broadcast immediately
-				p.poll(ctx)
+			case msg := <-redisCh:
+				// Decide whether to poll full state or forward granular event
+				if msg.Channel == cache.StateChangedChannel {
+					p.poll(ctx)
+				} else {
+					// Forward the delta event directly to WebSocket hub
+					p.broadcast <- []byte(msg.Payload)
+					log.Printf("[Poller] Forwarding granular event from %s (%d bytes)", msg.Channel, len(msg.Payload))
+				}
 			case <-ticker.C:
 				// Heartbeat: check for any missed changes
 				p.poll(ctx)

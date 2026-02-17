@@ -90,7 +90,7 @@ func GetFullState(ctx context.Context) ([]byte, int64, error) {
 		return nil, 0, err
 	}
 
-	messages, err := GetRecentMessages(ctx, 20)
+	messages, err := GetRecentMessages(ctx, 20, "")
 	if err != nil {
 		return nil, 0, err
 	}
@@ -244,16 +244,27 @@ func UpdateTaskStatus(ctx context.Context, taskID string, status string) error {
 
 // --- Messages ---
 
-// GetRecentMessages returns the N most recent messages.
-func GetRecentMessages(ctx context.Context, limit int) ([]state.Message, error) {
+// GetRecentMessages returns the N most recent messages, optionally filtered by agent interaction.
+func GetRecentMessages(ctx context.Context, limit int, agentID string) ([]state.Message, error) {
 	if limit <= 0 {
 		limit = 50
 	}
-	rows, err := Pool.Query(ctx, `
+
+	query := `
 		SELECT id, COALESCE(from_agent, ''), COALESCE(to_agent, ''),
 		       content, message_type, created_at
-		FROM messages ORDER BY created_at DESC LIMIT $1
-	`, limit)
+		FROM messages
+	`
+	args := []interface{}{limit}
+
+	if agentID != "" {
+		query += ` WHERE from_agent = $2 OR to_agent = $2`
+		args = append(args, agentID)
+	}
+
+	query += ` ORDER BY created_at DESC LIMIT $1`
+
+	rows, err := Pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

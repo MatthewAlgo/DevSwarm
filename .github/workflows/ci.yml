@@ -20,6 +20,10 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
         run: cd frontend && npm ci
+      - name: Lint
+        run: cd frontend && npm run lint
+      - name: Type Check
+        run: cd frontend && npx tsc --noEmit
       - name: Run Vitest
         run: cd frontend && npm test -- --run
 
@@ -33,6 +37,8 @@ jobs:
         with:
           go-version: '1.22'
           cache-dependency-path: backend/go.sum
+      - name: Vet
+        run: cd backend && go test ./... -v && go vet ./...
       - name: Run tests
         run: cd backend && go test ./... -v
 
@@ -51,7 +57,11 @@ jobs:
         run: |
           cd ai-engine
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements.txt ruff mypy
+      - name: Lint with Ruff
+        run: cd ai-engine && ruff check .
+      - name: Type check with Mypy
+        run: cd ai-engine && mypy .
       - name: Run Pytest
         env:
           PYTHONPATH: ai-engine

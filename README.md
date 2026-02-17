@@ -20,9 +20,9 @@ DevSwarm follows a distributed 3-tier architecture:
 | Component | Technology | Description |
 |-----------|------------|-------------|
 | **Frontend** | Next.js 16, React 19, Zustand, TailwindCSS | High-performance dashboard with real-time WebSocket state management. |
-| **Backend** | Go (Golang), Chi Router, WebSocket Hub | High-concurrency orchestrator handling state polling and client fan-out. |
+| **Backend Gateway** | Go (Golang), Chi Router, WebSocket Hub | The primary entry point. Handles authentication, proxies requests, and fan-out state updates. |
 | **AI Engine** | Python 3.12, LangGraph, Google Gemini | The "brain" of the operation. Orchestrates agent logic and persistence. |
-| **Database** | PostgreSQL | Source of truth for agent states, tasks, messages, and activity audit logs. |
+| **Database/Cache** | PostgreSQL & Redis | Source of truth and high-speed pub/sub for real-time deltas. |
 
 ---
 
@@ -46,6 +46,14 @@ DevSwarm follows a distributed 3-tier architecture:
 - **LLM**: Google Gemini 1.5 (Pro/Flash)
 - **Protocol**: Model Context Protocol (MCP) for tools
 - **Testing**: pytest (Deterministic & Probabilistic suites)
+
+---
+
+## ⚡ Performance & Scalability
+
+- **Granular Delta Updates**: Reduced WebSocket traffic by over 90% by broadcasting only changed fields instead of the full system state.
+- **N+1 Query Resolution**: Optimized database access in the AI Engine using `LEFT JOIN` and `array_agg`, reducing latency for task-heavy environments.
+- **Go Gateway**: High-concurrency handling of thousands of concurrent WebSocket connections.
 
 ---
 

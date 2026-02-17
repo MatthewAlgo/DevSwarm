@@ -5,30 +5,30 @@ Provides lookup by ID and iteration over all agents.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 
 from core.base_agent import BaseAgent
 from core.context import AgentContext
 
-from agents.marco.agent import MarcoAgent
-from agents.jimmy.agent import JimmyAgent
-from agents.mona.agent import MonaAgent
-from agents.dan.agent import DanAgent
-from agents.tonny.agent import TonnyAgent
-from agents.bob.agent import BobAgent
-from agents.ariani.agent import ArianiAgent
-from agents.peter.agent import PeterAgent
+from agents.orchestrator.agent import OrchestratorAgent
+from agents.crawler.agent import CrawlerAgent
+from agents.researcher.agent import ResearcherAgent
+from agents.viral_engineer.agent import ViralEngineerAgent
+from agents.comms.agent import CommsAgent
+from agents.devops.agent import DevOpsAgent
+from agents.archivist.agent import ArchivistAgent
+from agents.frontend_designer.agent import FrontendDesignerAgent
 
 # All agent classes in the order they appear on the office floor
-AGENT_CLASSES = [
-    MarcoAgent,
-    JimmyAgent,
-    MonaAgent,
-    DanAgent,
-    TonnyAgent,
-    BobAgent,
-    ArianiAgent,
-    PeterAgent,
+AGENT_CLASSES: list[type[BaseAgent[Any]]] = [
+    OrchestratorAgent,
+    CrawlerAgent,
+    ResearcherAgent,
+    ViralEngineerAgent,
+    CommsAgent,
+    DevOpsAgent,
+    ArchivistAgent,
+    FrontendDesignerAgent,
 ]
 
 

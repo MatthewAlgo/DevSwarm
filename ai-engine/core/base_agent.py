@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Type
+from typing import Any, Optional, Type, TypeVar, Generic
 
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -18,11 +18,14 @@ from pydantic import BaseModel
 from core.context import AgentContext, LiveContext
 from core.llm import get_llm
 from core.state import OfficeState
+from models import AgentStatusEnum, RoomEnum
 
 logger = logging.getLogger("devswarm.core.base_agent")
 
+TOutputSchema = TypeVar("TOutputSchema", bound=BaseModel)
 
-class BaseAgent(ABC):
+
+class BaseAgent(ABC, Generic[TOutputSchema]):
     """
     Abstract base class all DevSwarm agents inherit from.
 
@@ -42,7 +45,7 @@ class BaseAgent(ABC):
     name: str
     role: str
     default_room: str
-    output_schema: Type[BaseModel]
+    output_schema: Type[TOutputSchema]
 
     _UNSET = object()  # Sentinel for lazy LLM init
 
@@ -65,7 +68,8 @@ class BaseAgent(ABC):
         """Lazy-initialized LLM. Only calls get_llm() on first access."""
         if self._llm is self._UNSET:
             self._llm = get_llm()
-        return self._llm
+        # We know _llm is a Runnable here, but mypy sees Union[Runnable, object]
+        return self._llm  # type: ignore
 
     @llm.setter
     def llm(self, value: Runnable) -> None:
@@ -88,7 +92,7 @@ class BaseAgent(ABC):
     async def execute(
         self,
         state: OfficeState,
-        parsed: BaseModel,
+        parsed: TOutputSchema,
         context: AgentContext,
     ) -> OfficeState:
         """
@@ -131,10 +135,10 @@ class BaseAgent(ABC):
         try:
             # 1. Set Working
             agent_logger.info(f"{self.name} starting work")
+            # Don't force move to default room - allow Marco to place them in War Room
             await ctx.update_agent(
                 self.agent_id,
-                current_room=self.default_room,
-                status="Working",
+                status=AgentStatusEnum.WORKING,
                 thought_chain=f"Analyzing request and preparing {self.role.lower()} response...",
             )
 
@@ -152,10 +156,11 @@ class BaseAgent(ABC):
             # 4. Execute agent-specific logic
             state = await self.execute(state, parsed, ctx)
 
-            # 5. Set Idle
+            # 5. Set Idle and Return to Default Room
             await ctx.update_agent(
                 self.agent_id,
-                status="Idle",
+                current_room=RoomEnum(self.default_room) if self.default_room else RoomEnum.DESKS,
+                status=AgentStatusEnum.IDLE,
                 current_task="",
                 thought_chain=f"Task complete. {self.role} work finished successfully.",
             )
@@ -172,9 +177,11 @@ class BaseAgent(ABC):
         except Exception as e:
             agent_logger.error(f"{self.name} error: {e}", exc_info=True)
 
+            # Reset to default room on error too
             await ctx.update_agent(
                 self.agent_id,
-                status="Error",
+                current_room=RoomEnum(self.default_room) if self.default_room else RoomEnum.DESKS,
+                status=AgentStatusEnum.ERROR,
                 thought_chain=f"Error encountered: {str(e)[:200]}",
             )
 

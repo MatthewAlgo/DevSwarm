@@ -6,10 +6,10 @@ Async PostgreSQL operations via asyncpg.
 import json
 import logging
 import os
-from datetime import datetime
 from typing import Any, Optional
 
-import asyncpg
+import asyncpg  # type: ignore
+import redis_client
 
 logger = logging.getLogger("devswarm.database")
 
@@ -20,7 +20,10 @@ async def get_pool() -> asyncpg.Pool:
     """Get or create the database connection pool."""
     global _pool
     if _pool is None:
-        dsn = os.getenv("DATABASE_URL", "postgresql://devswarm_user:devswarm_password@db:5432/devswarm_state")
+        dsn = os.getenv(
+            "DATABASE_URL",
+            "postgresql://devswarm_user:devswarm_password@db:5432/devswarm_state",
+        )
         _pool = await asyncpg.create_pool(dsn, min_size=2, max_size=10)
         logger.info("Database connection pool created")
     return _pool
@@ -36,6 +39,7 @@ async def close_pool():
 
 
 # --- Agent Operations ---
+
 
 async def get_all_agents() -> list[dict]:
     """Fetch all agents from the database."""
@@ -56,6 +60,37 @@ async def get_agent(agent_id: str) -> Optional[dict]:
                   thought_chain, tech_stack, avatar_color, updated_at
            FROM agents WHERE id = $1""",
         agent_id,
+    )
+    return dict(row) if row else None
+
+
+async def get_task(task_id: str) -> Optional[dict]:
+    """Fetch a single task by ID."""
+    pool = await get_pool()
+    row = await pool.fetchrow(
+        """SELECT t.id, t.title, t.description, t.status, t.priority,
+                  COALESCE(t.created_by, '') as created_by, t.created_at, t.updated_at,
+                  array_agg(ta.agent_id) FILTER (WHERE ta.agent_id IS NOT NULL) as assigned_agents
+           FROM tasks t
+           LEFT JOIN task_assignments ta ON t.id = ta.task_id
+           WHERE t.id = $1
+           GROUP BY t.id""",
+        int(task_id) if task_id.isdigit() else task_id,
+    )
+    if not row:
+        return None
+    task = dict(row)
+    task["id"] = str(task["id"])
+    task["assigned_agents"] = task["assigned_agents"] if task["assigned_agents"] else []
+    return task
+
+
+async def get_message(message_id: str) -> Optional[dict]:
+    """Fetch a single message by ID."""
+    pool = await get_pool()
+    row = await pool.fetchrow(
+        "SELECT id, from_agent, to_agent, content, message_type, created_at FROM messages WHERE id = $1",
+        int(message_id) if message_id.isdigit() else message_id,
     )
     return dict(row) if row else None
 
@@ -101,18 +136,28 @@ async def update_agent(
     await pool.execute(query, *params)
     await increment_state_version()
 
+    # Publish delta
+    try:
+        updated_agent = await get_agent(agent_id)
+        if updated_agent:
+            await redis_client.publish_delta("agents", agent_id, updated_agent)
+    except Exception as e:
+        logger.warning("Agent delta publish failed: %s", e)
+
 
 async def bulk_update_agents(status: str, room: str) -> None:
     """Update all agents to a given status and room."""
     pool = await get_pool()
     await pool.execute(
         "UPDATE agents SET status = $1, current_room = $2, updated_at = NOW()",
-        status, room,
+        status,
+        room,
     )
     await increment_state_version()
 
 
 # --- State Operations ---
+
 
 async def get_state_version() -> int:
     """Get the current office state version."""
@@ -132,6 +177,7 @@ async def increment_state_version() -> None:
     # Notify via Redis pub/sub for instant broadcast
     try:
         import redis_client
+
         await redis_client.publish_state_changed()
     except Exception as e:
         logger.debug("Redis pub/sub notify skipped (non-fatal): %s", e)
@@ -148,19 +194,25 @@ async def update_global_state(state_data: dict) -> None:
 
 # --- Task Operations ---
 
+
 async def get_all_tasks() -> list[dict]:
     """Fetch all tasks."""
     pool = await get_pool()
     rows = await pool.fetch(
-        """SELECT id, title, description, status, priority,
-                  COALESCE(created_by, '') as created_by, created_at, updated_at
-           FROM tasks ORDER BY priority DESC, created_at DESC"""
+        """SELECT t.id, t.title, t.description, t.status, t.priority,
+                  COALESCE(t.created_by, '') as created_by, t.created_at, t.updated_at,
+                  array_agg(ta.agent_id) FILTER (WHERE ta.agent_id IS NOT NULL) as assigned_agents
+           FROM tasks t
+           LEFT JOIN task_assignments ta ON t.id = ta.task_id
+           GROUP BY t.id
+           ORDER BY t.priority DESC, t.created_at DESC"""
     )
     tasks = []
     for r in rows:
         task = dict(r)
         task["id"] = str(task["id"])
-        task["assigned_agents"] = await get_task_assignees(task["id"])
+        # Ensure assigned_agents is a list even if None (though array_agg returns null or array)
+        task["assigned_agents"] = task["assigned_agents"] if task["assigned_agents"] else []
         tasks.append(task)
     return tasks
 
@@ -170,10 +222,13 @@ async def get_tasks_by_agent(agent_id: str) -> list[dict]:
     pool = await get_pool()
     rows = await pool.fetch(
         """SELECT t.id, t.title, t.description, t.status, t.priority,
-                  COALESCE(t.created_by, '') as created_by, t.created_at, t.updated_at
+                  COALESCE(t.created_by, '') as created_by, t.created_at, t.updated_at,
+                  array_agg(ta2.agent_id) FILTER (WHERE ta2.agent_id IS NOT NULL) as assigned_agents
            FROM tasks t
            JOIN task_assignments ta ON t.id = ta.task_id
+           LEFT JOIN task_assignments ta2 ON t.id = ta2.task_id
            WHERE ta.agent_id = $1
+           GROUP BY t.id
            ORDER BY t.priority DESC, t.created_at DESC""",
         agent_id,
     )
@@ -181,7 +236,7 @@ async def get_tasks_by_agent(agent_id: str) -> list[dict]:
     for r in rows:
         task = dict(r)
         task["id"] = str(task["id"])
-        task["assigned_agents"] = await get_task_assignees(task["id"])
+        task["assigned_agents"] = task["assigned_agents"] if task["assigned_agents"] else []
         tasks.append(task)
     return tasks
 
@@ -208,7 +263,11 @@ async def create_task(
     row = await pool.fetchrow(
         """INSERT INTO tasks (title, description, status, priority, created_by)
            VALUES ($1, $2, $3, $4, $5) RETURNING id""",
-        title, description, status, priority, created_by,
+        title,
+        description,
+        status,
+        priority,
+        created_by,
     )
     task_id = str(row["id"])
 
@@ -216,10 +275,20 @@ async def create_task(
         for agent_id in assigned_agents:
             await pool.execute(
                 "INSERT INTO task_assignments (task_id, agent_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-                row["id"], agent_id,
+                row["id"],
+                agent_id,
             )
 
     await increment_state_version()
+
+    # Publish delta
+    try:
+        updated_task = await get_task(task_id)
+        if updated_task:
+            await redis_client.publish_delta("tasks", task_id, updated_task)
+    except Exception as e:
+        logger.warning("Task delta publish failed: %s", e)
+
     return task_id
 
 
@@ -228,12 +297,22 @@ async def update_task_status(task_id: str, status: str) -> None:
     pool = await get_pool()
     await pool.execute(
         "UPDATE tasks SET status = $1, updated_at = NOW() WHERE id = $2",
-        status, task_id,
+        status,
+        task_id,
     )
     await increment_state_version()
 
+    # Publish delta
+    try:
+        updated_task = await get_task(task_id)
+        if updated_task:
+            await redis_client.publish_delta("tasks", task_id, updated_task)
+    except Exception as e:
+        logger.warning("Task status delta publish failed: %s", e)
+
 
 # --- Message Operations ---
+
 
 async def create_message(
     from_agent: str, to_agent: str, content: str, message_type: str = "chat"
@@ -243,10 +322,23 @@ async def create_message(
     row = await pool.fetchrow(
         """INSERT INTO messages (from_agent, to_agent, content, message_type)
            VALUES ($1, $2, $3, $4) RETURNING id""",
-        from_agent, to_agent, content, message_type,
+        from_agent,
+        to_agent,
+        content,
+        message_type,
     )
     await increment_state_version()
-    return str(row["id"])
+    msg_id = str(row["id"])
+
+    # Publish delta
+    try:
+        updated_msg = await get_message(msg_id)
+        if updated_msg:
+            await redis_client.publish_delta("messages", msg_id, updated_msg)
+    except Exception as e:
+        logger.warning("Message delta publish failed: %s", e)
+
+    return msg_id
 
 
 async def get_recent_messages(limit: int = 20) -> list[dict]:
@@ -269,6 +361,7 @@ async def get_recent_messages(limit: int = 20) -> list[dict]:
 
 # --- Cost Operations ---
 
+
 async def record_cost(
     agent_id: str, input_tokens: int, output_tokens: int, cost_usd: float
 ) -> None:
@@ -277,7 +370,10 @@ async def record_cost(
     await pool.execute(
         """INSERT INTO agent_costs (agent_id, input_tokens, output_tokens, cost_usd)
            VALUES ($1, $2, $3, $4)""",
-        agent_id, input_tokens, output_tokens, cost_usd,
+        agent_id,
+        input_tokens,
+        output_tokens,
+        cost_usd,
     )
 
 
@@ -296,13 +392,16 @@ async def get_agent_costs() -> list[dict]:
 
 # --- Activity Log ---
 
+
 async def log_activity(agent_id: str, action: str, details: Any = None) -> None:
     """Record an activity log entry."""
     pool = await get_pool()
     details_json = json.dumps(details or {})
     await pool.execute(
         "INSERT INTO activity_log (agent_id, action, details) VALUES ($1, $2, $3)",
-        agent_id, action, details_json,
+        agent_id,
+        action,
+        details_json,
     )
 
 

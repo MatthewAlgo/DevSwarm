@@ -3,10 +3,13 @@
    ━━━━━━━━━━━━━━━━━━━ */
 
 const GO = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
-const PY = "http://localhost:8000";
+
+const TOKEN = "Bearer devswarm-secret-key";
 
 async function get<T>(base: string, path: string): Promise<T> {
-  const r = await fetch(`${base}${path}`);
+  const r = await fetch(`${base}${path}`, {
+    headers: { Authorization: TOKEN },
+  });
   if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
   return r.json();
 }
@@ -14,7 +17,10 @@ async function get<T>(base: string, path: string): Promise<T> {
 async function post<T>(base: string, path: string, body: unknown): Promise<T> {
   const r = await fetch(`${base}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: TOKEN,
+    },
     body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
@@ -28,7 +34,10 @@ async function patch<T>(
 ): Promise<T> {
   const r = await fetch(`${base}${path}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: TOKEN,
+    },
     body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
@@ -53,10 +62,10 @@ export const api = {
   getCosts: () => get<any[]>(GO, "/costs"),
   getActivity: (n = 50) => get<any[]>(GO, `/activity?limit=${n}`),
 
-  // Python AI engine
+  // Python AI engine (proxied via Go)
   triggerGoal: (goal: string, to?: string[]) =>
-    post<any>(PY, "/api/trigger", { goal, assigned_to: to }),
-  simulateActivity: () => post<any>(PY, "/api/simulate/activity", {}),
-  simulateDemoDay: () => post<any>(PY, "/api/simulate/demo-day", {}),
+    post<any>(GO, "/trigger", { goal, assigned_to: to }),
+  simulateActivity: () => post<any>(GO, "/simulate/activity", {}),
+  simulateDemoDay: () => post<any>(GO, "/simulate/demo-day", {}),
 };
 /* eslint-enable @typescript-eslint/no-explicit-any */

@@ -52,21 +52,18 @@ const STORAGE_KEY = "devswarm_user";
 /* ── Provider ── */
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
-    const pathname = usePathname();
-
-    /* hydrate from localStorage */
-    useEffect(() => {
+    const [user, setUser] = useState<User | null>(() => {
+        if (typeof window === "undefined") return null;
         try {
             const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) setUser(JSON.parse(stored));
+            return stored ? JSON.parse(stored) : null;
         } catch {
-            /* empty */
+            return null;
         }
-        setLoading(false);
-    }, []);
+    });
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+    const pathname = usePathname();
 
     /* redirect unauthenticated to /login */
     useEffect(() => {

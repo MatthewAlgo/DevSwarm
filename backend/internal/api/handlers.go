@@ -209,7 +209,7 @@ func UpdateTaskStatus(w http.ResponseWriter, r *http.Request) {
 
 // --- Message Handlers ---
 
-// ListMessages returns recent messages with optional limit.
+// ListMessages returns recent messages with optional limit and agent filter.
 func ListMessages(w http.ResponseWriter, r *http.Request) {
 	limit := 50
 	if v := r.URL.Query().Get("limit"); v != "" {
@@ -217,8 +217,9 @@ func ListMessages(w http.ResponseWriter, r *http.Request) {
 			limit = n
 		}
 	}
+	agentID := r.URL.Query().Get("agent_id")
 
-	messages, err := db.GetRecentMessages(r.Context(), limit)
+	messages, err := db.GetRecentMessages(r.Context(), limit, agentID)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return

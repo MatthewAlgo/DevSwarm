@@ -8,20 +8,25 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 
-# --- Marco (CEO / Orchestrator) ---
+# --- Orchestrator (CEO / Orchestrator) ---
+
 
 class SubtaskAssignment(BaseModel):
-    """A single task delegation from Marco to a specialist agent."""
+    """A single task delegation from Orchestrator to a specialist agent."""
 
-    agent: str = Field(description="Agent ID to delegate to (e.g. 'jimmy', 'mona', 'dan')")
+    agent: str = Field(
+        description="Agent ID to delegate to (e.g. 'crawler', 'researcher', 'viral_engineer')"
+    )
     task: str = Field(description="Clear description of the subtask to execute")
     priority: int = Field(default=3, ge=1, le=5, description="Priority 1-5 (5=highest)")
 
 
-class MarcoRoutingOutput(BaseModel):
-    """Marco's task decomposition and delegation plan."""
+class OrchestratorRoutingOutput(BaseModel):
+    """Orchestrator's task decomposition and delegation plan."""
 
-    analysis: str = Field(description="Brief analysis of the goal and required expertise")
+    analysis: str = Field(
+        description="Brief analysis of the goal and required expertise"
+    )
     subtasks: list[SubtaskAssignment] = Field(
         default_factory=list,
         description="List of subtask assignments to specialist agents",
@@ -33,12 +38,17 @@ class MarcoRoutingOutput(BaseModel):
         default_factory=list,
         description="Agent IDs to include in the meeting (if meeting_required)",
     )
+    response: str = Field(
+        default="",
+        description="Direct response to the user, if the goal was a question or chat",
+    )
 
 
-# --- Jimmy (Content Crawler) ---
+# --- Crawler (Content Crawler) ---
+
 
 class CrawlFinding(BaseModel):
-    """A single finding from Jimmy's web crawl."""
+    """A single finding from Crawler's web crawl."""
 
     topic: str = Field(description="Topic name or headline")
     summary: str = Field(description="Key findings summary")
@@ -47,8 +57,8 @@ class CrawlFinding(BaseModel):
     tags: list[str] = Field(default_factory=list, description="Topic tags")
 
 
-class JimmyCrawlOutput(BaseModel):
-    """Jimmy's structured crawl results."""
+class CrawlerCrawlOutput(BaseModel):
+    """Crawler's structured crawl results."""
 
     findings: list[CrawlFinding] = Field(default_factory=list)
     next_crawl_focus: str = Field(
@@ -56,25 +66,33 @@ class JimmyCrawlOutput(BaseModel):
     )
 
 
-# --- Mona Lisa (Deep Researcher) ---
+# --- Researcher (Deep Researcher) ---
 
-class MonaResearchOutput(BaseModel):
-    """Mona Lisa's structured research report."""
+
+class ResearcherOutput(BaseModel):
+    """Researcher's structured research report."""
 
     title: str = Field(description="Research report title")
     executive_summary: str = Field(description="Brief overview of findings")
-    key_findings: list[str] = Field(default_factory=list, description="List of key findings")
-    data_sources: list[str] = Field(default_factory=list, description="Sources consulted")
-    recommendations: list[str] = Field(default_factory=list, description="Actionable recommendations")
+    key_findings: list[str] = Field(
+        default_factory=list, description="List of key findings"
+    )
+    data_sources: list[str] = Field(
+        default_factory=list, description="Sources consulted"
+    )
+    recommendations: list[str] = Field(
+        default_factory=list, description="Actionable recommendations"
+    )
     confidence_level: str = Field(
         default="medium", description="Confidence: high/medium/low"
     )
 
 
-# --- Dan (Viral Engineer) ---
+# --- Viral Engineer (Viral Engineer) ---
+
 
 class ContentDraft(BaseModel):
-    """A single content draft from Dan."""
+    """A single content draft from Viral Engineer."""
 
     platform: str = Field(description="Target platform: twitter/linkedin/blog")
     content: str = Field(description="The actual content text")
@@ -85,18 +103,21 @@ class ContentDraft(BaseModel):
     call_to_action: str = Field(default="", description="Optional CTA")
 
 
-class DanContentOutput(BaseModel):
-    """Dan's structured content creation output."""
+class ViralContentOutput(BaseModel):
+    """Viral Engineer's structured content creation output."""
 
     topic: str = Field(description="Topic the content is about")
     drafts: list[ContentDraft] = Field(default_factory=list)
-    sentiment_analysis: str = Field(default="", description="Overall sentiment assessment")
+    sentiment_analysis: str = Field(
+        default="", description="Overall sentiment assessment"
+    )
 
 
-# --- Tonny (Comms Interface) ---
+# --- Comms (Comms Interface) ---
+
 
 class CommItem(BaseModel):
-    """A single communication item processed by Tonny."""
+    """A single communication item processed by Comms."""
 
     type: str = Field(description="reply/newsletter/notification")
     to: str = Field(description="Recipient identifier")
@@ -105,35 +126,39 @@ class CommItem(BaseModel):
     priority: str = Field(default="normal", description="high/normal/low")
 
 
-class TonnyCommsOutput(BaseModel):
-    """Tonny's structured communications output."""
+class CommsOutput(BaseModel):
+    """Comms' structured communications output."""
 
     processed: list[CommItem] = Field(default_factory=list)
     escalations: list[str] = Field(
-        default_factory=list, description="Items escalated to Marco"
+        default_factory=list, description="Items escalated to Orchestrator"
     )
     summary: str = Field(default="", description="Processing summary")
 
 
-# --- Bob (DevOps Monitor) ---
+# --- DevOps (DevOps Monitor) ---
 
-class BobHealthOutput(BaseModel):
-    """Bob's system health check report."""
+
+class DevOpsHealthOutput(BaseModel):
+    """DevOps's system health check report."""
 
     diagnosis: str = Field(description="Root cause analysis or system status")
     agents_online: int = Field(default=0, description="Number of online agents")
     agents_error: int = Field(default=0, description="Number of agents in error state")
     agents_recovered: int = Field(default=0, description="Number recovered this cycle")
-    system_status: str = Field(default="healthy", description="healthy/recovering/critical")
+    system_status: str = Field(
+        default="healthy", description="healthy/recovering/critical"
+    )
     actions_taken: list[str] = Field(
         default_factory=list, description="Recovery actions performed"
     )
 
 
-# --- Ariani (KB Organizer) ---
+# --- Archivist (KB Organizer) ---
+
 
 class KBEntry(BaseModel):
-    """A single knowledge base entry organized by Ariani."""
+    """A single knowledge base entry organized by Archivist."""
 
     document_title: str = Field(description="Document title")
     category: str = Field(description="research/content/devops/general")
@@ -143,23 +168,22 @@ class KBEntry(BaseModel):
     )
 
 
-class ArianiKBOutput(BaseModel):
-    """Ariani's knowledge base organization output."""
+class ArchivistKBOutput(BaseModel):
+    """Archivist's knowledge base organization output."""
 
     entries_organized: int = Field(default=0, description="Number of entries processed")
     entries: list[KBEntry] = Field(default_factory=list)
     summary: str = Field(default="", description="Organization summary")
 
 
-# --- Peter (Frontend Designer) ---
+# --- Frontend Designer (Frontend Designer) ---
 
-class PeterDesignOutput(BaseModel):
-    """Peter's design output."""
+
+class FrontendDesignOutput(BaseModel):
+    """Frontend Designer's design output."""
 
     type: str = Field(description="mockup/asset/critique")
     description: str = Field(description="What was created or analyzed")
     design_notes: str = Field(description="Technical design notes")
     iterations: int = Field(default=1, description="Number of design iterations")
-    approval_status: str = Field(
-        default="draft", description="draft/review/approved"
-    )
+    approval_status: str = Field(default="draft", description="draft/review/approved")

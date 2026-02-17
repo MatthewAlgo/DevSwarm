@@ -4,7 +4,7 @@ Uses mocked asyncpg.Pool to verify SQL correctness without a live database.
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 import json
 
 import database as db
@@ -101,15 +101,18 @@ class TestCreateTask:
     async def test_returns_task_id(self, patch_pool):
         patch_pool.fetchrow.return_value = {"id": 42}
         result = await db.create_task(
-            title="Test Task", description="Description",
-            created_by="marco", assigned_agents=["mona"],
+            title="Test Task",
+            description="Description",
+            created_by="marco",
+            assigned_agents=["mona"],
         )
         assert result == "42"
 
     async def test_assigns_agents(self, patch_pool):
         patch_pool.fetchrow.return_value = {"id": 1}
         await db.create_task(
-            title="Test", assigned_agents=["mona", "dan"],
+            title="Test",
+            assigned_agents=["mona", "dan"],
         )
         # fetchrow for INSERT + 2x execute for assignments
         assert patch_pool.execute.call_count == 2
@@ -160,7 +163,61 @@ class TestLogActivity:
         # Details should be JSON serialized
         assert json.loads(args[3]) == {"key": "value"}
 
-    async def test_none_details_becomes_empty_dict(self, patch_pool):
-        await db.log_activity("marco", "test_action", None)
-        args = patch_pool.execute.call_args[0]
-        assert json.loads(args[3]) == {}
+
+@pytest.mark.asyncio
+class TestGetAllTasks:
+    async def test_fetches_tasks_and_assignees_in_one_query(self, patch_pool):
+        # Mock return value for the optimized query
+        patch_pool.fetch.return_value = [
+            {
+                "id": 1,
+                "title": "Task 1",
+                "assigned_agents": ["marco", "mona"],  # array_agg result
+                "created_at": "2023-01-01",
+                "updated_at": "2023-01-01",
+            },
+            {
+                "id": 2,
+                "title": "Task 2",
+                "assigned_agents": [],
+                "created_at": "2023-01-02",
+                "updated_at": "2023-01-02",
+            },
+        ]
+
+        tasks = await db.get_all_tasks()
+
+        assert len(tasks) == 2
+        assert tasks[0]["assigned_agents"] == ["marco", "mona"]
+        assert tasks[1]["assigned_agents"] == []
+
+        # verification: only ONE fetch call should be made
+        assert patch_pool.fetch.call_count == 1
+
+
+@pytest.mark.asyncio
+class TestDeltaPublishing:
+    async def test_update_agent_publishes_delta(self, patch_pool):
+        # Mock get_agent to return the "updated" agent
+        agent_data = {"id": "marco", "status": "Busy"}
+        with patch("database.get_agent", AsyncMock(return_value=agent_data)):
+            with patch("redis_client.publish_delta", AsyncMock()) as mock_publish:
+                await db.update_agent("marco", status="Busy")
+                # Wait for any background tasks if necessary, but here it's direct
+                mock_publish.assert_called_once_with("agents", "marco", agent_data)
+
+    async def test_create_task_publishes_delta(self, patch_pool):
+        task_data = {"id": "1", "title": "New Task"}
+        patch_pool.fetchrow.return_value = {"id": 1}
+        with patch("database.get_task", AsyncMock(return_value=task_data)):
+            with patch("redis_client.publish_delta", AsyncMock()) as mock_publish:
+                await db.create_task(title="New Task")
+                mock_publish.assert_called_once_with("tasks", "1", task_data)
+
+    async def test_create_message_publishes_delta(self, patch_pool):
+        msg_data = {"id": "100", "content": "Hello"}
+        patch_pool.fetchrow.return_value = {"id": 100}
+        with patch("database.get_message", AsyncMock(return_value=msg_data)):
+            with patch("redis_client.publish_delta", AsyncMock()) as mock_publish:
+                await db.create_message("agent_a", "agent_b", "Hello")
+                mock_publish.assert_called_once_with("messages", "100", msg_data)

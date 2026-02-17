@@ -28,7 +28,9 @@ async def mutate_global_state(status: str, room: str, message: str = "") -> None
     }
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(f"{API_ENDPOINT}/api/state/override", json=payload)
+            response = await client.post(
+                f"{API_ENDPOINT}/api/state/override", json=payload
+            )
             if response.status_code == 200:
                 logger.info(f"Successfully broadcasted global state: {status}")
             else:
@@ -54,14 +56,14 @@ async def simulate_agent_activity() -> None:
     import random
 
     activities = [
-        ("marco", "Review daily priorities and delegate morning tasks"),
-        ("jimmy", "Perform scheduled content crawl cycle"),
-        ("bob", "Run system health check"),
-        ("tonny", "Process incoming communications"),
-        ("mona", "Continue ongoing research tasks"),
-        ("dan", "Draft new social media content"),
-        ("ariani", "Organize today's knowledge base entries"),
-        ("peter", "Review and iterate on current design tasks"),
+        ("orchestrator", "Review daily priorities and delegate morning tasks"),
+        ("crawler", "Perform scheduled content crawl cycle"),
+        ("devops", "Run system health check"),
+        ("comms", "Process incoming communications"),
+        ("researcher", "Continue ongoing research tasks"),
+        ("viral_engineer", "Draft new social media content"),
+        ("archivist", "Organize today's knowledge base entries"),
+        ("frontend_designer", "Review and iterate on current design tasks"),
     ]
 
     # Pick 2-3 random activities to simulate
@@ -111,14 +113,16 @@ async def temporal_loop() -> None:
             clocked_in = False
 
         # During work hours: periodic activity simulation (every hour)
-        elif clocked_in and 9 < current_hour < 17 and current_hour != last_activity_hour:
+        elif (
+            clocked_in and 9 < current_hour < 17 and current_hour != last_activity_hour
+        ):
             logger.info(f"=== Hourly Activity Cycle ({current_hour}:00) ===")
             await simulate_agent_activity()
             last_activity_hour = current_hour
 
         # Jimmy's 15-minute autonomous crawl cycle
         elif clocked_in and current_minute % 15 == 0:
-            await trigger_agent_task("jimmy", "Scheduled 15-minute content crawl")
+            await trigger_agent_task("crawler", "Scheduled 15-minute content crawl")
 
         await asyncio.sleep(60)  # Check every minute
 
@@ -137,30 +141,37 @@ async def run_demo_cycle() -> None:
 
     # Simulate morning activities
     logger.info("[Demo] Morning activities...")
-    await trigger_agent_task("marco", "Plan today's deliverables and assign work")
+    # Simulate morning activities
+    await trigger_agent_task(
+        "orchestrator", "Plan today's deliverables and assign work"
+    )
     await asyncio.sleep(5)
 
     # Midday research
     logger.info("[Demo] Midday research cycle...")
-    await trigger_agent_task("jimmy", "Crawl trending AI news")
+    await trigger_agent_task("crawler", "Crawl trending AI news")
     await asyncio.sleep(3)
-    await trigger_agent_task("mona", "Deep research on multi-agent architectures")
+    await trigger_agent_task("researcher", "Deep research on multi-agent architectures")
     await asyncio.sleep(5)
 
     # Afternoon content and comms
     logger.info("[Demo] Afternoon content creation...")
-    await trigger_agent_task("dan", "Create social media content from today's research")
+    await trigger_agent_task(
+        "viral_engineer", "Create social media content from today's research"
+    )
     await asyncio.sleep(3)
-    await trigger_agent_task("tonny", "Process afternoon communications")
+    await trigger_agent_task("comms", "Process afternoon communications")
     await asyncio.sleep(3)
 
     # Health check
     logger.info("[Demo] End-of-day health check...")
-    await trigger_agent_task("bob", "Run comprehensive health diagnostics")
+    await trigger_agent_task("devops", "Run comprehensive health diagnostics")
     await asyncio.sleep(3)
 
     # KB update
-    await trigger_agent_task("ariani", "Organize all today's outputs into knowledge base")
+    await trigger_agent_task(
+        "archivist", "Organize all today's outputs into knowledge base"
+    )
     await asyncio.sleep(3)
 
     # Clock out

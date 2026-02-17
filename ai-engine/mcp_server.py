@@ -7,14 +7,14 @@ import logging
 
 from mcp.server.fastmcp import FastMCP
 
-from agents.marco.tools import mcp as marco_mcp
-from agents.jimmy.tools import mcp as jimmy_mcp
-from agents.mona.tools import mcp as mona_mcp
-from agents.dan.tools import mcp as dan_mcp
-from agents.tonny.tools import mcp as tonny_mcp
-from agents.bob.tools import mcp as bob_mcp
-from agents.ariani.tools import mcp as ariani_mcp
-from agents.peter.tools import mcp as peter_mcp
+from agents.orchestrator.tools import mcp as marco_mcp
+from agents.crawler.tools import mcp as jimmy_mcp
+from agents.researcher.tools import mcp as mona_mcp
+from agents.viral_engineer.tools import mcp as dan_mcp
+from agents.comms.tools import mcp as tonny_mcp
+from agents.devops.tools import mcp as bob_mcp
+from agents.archivist.tools import mcp as ariani_mcp
+from agents.frontend_designer.tools import mcp as peter_mcp
 
 logger = logging.getLogger("devswarm.mcp_server")
 
@@ -44,7 +44,7 @@ def list_all_tools() -> dict[str, list[str]]:
     tools = {}
     for agent_id, server in AGENT_MCP_SERVERS.items():
         tool_list = []
-        if hasattr(server, '_tool_manager') and hasattr(server._tool_manager, 'tools'):
+        if hasattr(server, "_tool_manager") and hasattr(server._tool_manager, "tools"):
             for tool_name in server._tool_manager.tools:
                 tool_list.append(tool_name)
         tools[agent_id] = tool_list
@@ -52,6 +52,7 @@ def list_all_tools() -> dict[str, list[str]]:
 
 
 # Cross-agent MCP tools on the unified server
+
 
 @unified_mcp.tool()
 async def call_agent(agent_id: str, tool_name: str, params: str = "{}") -> str:
@@ -73,12 +74,15 @@ async def call_agent(agent_id: str, tool_name: str, params: str = "{}") -> str:
     logger.info(f"MCP call: {agent_id}.{tool_name}({parsed_params})")
 
     # In production, this would invoke the tool via the MCP protocol
-    return f"Tool '{tool_name}' invoked on agent '{agent_id}' with params: {parsed_params}"
+    return (
+        f"Tool '{tool_name}' invoked on agent '{agent_id}' with params: {parsed_params}"
+    )
 
 
 @unified_mcp.tool()
 async def list_available_tools() -> str:
     """List all available tools across all agents."""
     import json
+
     tools = list_all_tools()
     return json.dumps(tools, indent=2)

@@ -40,6 +40,6 @@ def get_llm(
         temperature=temperature,
         max_output_tokens=max_output_tokens,
         google_api_key=api_key,
-    )
+    )  # type: ignore
     logger.info(f"LLM initialized: {model} (temp={temperature})")
     return llm

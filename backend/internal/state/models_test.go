@@ -255,7 +255,7 @@ func TestAgentNilTechStack(t *testing.T) {
 	json.Unmarshal(data, &restored)
 
 	// Should handle nil TechStack gracefully
-	if restored.TechStack != nil && len(restored.TechStack) != 0 {
+	if len(restored.TechStack) != 0 {
 		t.Errorf("Expected nil or empty TechStack, got %v", restored.TechStack)
 	}
 }

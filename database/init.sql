@@ -95,23 +95,26 @@ CREATE INDEX idx_activity_log_created ON activity_log(created_at DESC);
 CREATE INDEX idx_agent_costs_agent ON agent_costs(agent_id);
 
 -- Seed the 8 agents
+-- Seed the 8 agents
 INSERT INTO agents (id, name, role, current_room, status, tech_stack, avatar_color) VALUES
-    ('marco', 'Marco', 'CEO / Orchestrator', 'Private Office', 'Idle',
+    ('orchestrator', 'Orchestrator', 'CEO / Orchestrator', 'Private Office', 'Idle',
      ARRAY['create_task', 'assign_agent', 'schedule_meeting'], '#8b5cf6'),
-    ('jimmy', 'Jimmy', 'Content Crawler', 'Desks', 'Idle',
+    ('crawler', 'Crawler', 'Content Crawler', 'Desks', 'Idle',
      ARRAY['search_web', 'scrape_url', 'summarize_text'], '#3b82f6'),
-    ('mona', 'Mona Lisa', 'Deep Researcher', 'Desks', 'Idle',
+    ('researcher', 'Researcher', 'Deep Researcher', 'Desks', 'Idle',
      ARRAY['academic_search', 'competitor_analysis', 'read_pdf'], '#ec4899'),
-    ('dan', 'Dan', 'Viral Engineer', 'Lounge', 'Idle',
+    ('viral_engineer', 'Viral Engineer', 'Viral Engineer', 'Lounge', 'Idle',
      ARRAY['draft_tweet', 'analyze_sentiment', 'get_trending_topics'], '#f59e0b'),
-    ('tonny', 'Tonny', 'Comms Interface', 'Desks', 'Idle',
+    ('comms', 'Comms', 'Comms Interface', 'Desks', 'Idle',
      ARRAY['fetch_emails', 'draft_reply', 'send_newsletter'], '#10b981'),
-    ('bob', 'Bob', 'DevOps Monitor', 'Server Room', 'Idle',
+    ('devops', 'DevOps', 'DevOps Monitor', 'Server Room', 'Idle',
      ARRAY['check_uptime', 'view_logs', 'restart_service'], '#ef4444'),
-    ('ariani', 'Ariani', 'KB Organizer', 'Desks', 'Idle',
+    ('archivist', 'Archivist', 'KB Organizer', 'Desks', 'Idle',
      ARRAY['update_notion', 'organize_files', 'create_doc'], '#06b6d4'),
-    ('peter', 'Peter', 'Frontend Designer', 'Desks', 'Idle',
-     ARRAY['generate_image', 'critique_ui', 'create_mockup'], '#f97316');
+    ('frontend_designer', 'Frontend Designer', 'Frontend Designer', 'Desks', 'Idle',
+     ARRAY['generate_image', 'critique_ui', 'create_mockup'], '#f97316'),
+    ('user', 'User', 'Human Administrator', 'Private Office', 'Idle',
+     ARRAY[]::TEXT[], '#10b981');
 
 -- Initialize the global office state
 INSERT INTO office_state (id, state_json, version) VALUES (1, '{

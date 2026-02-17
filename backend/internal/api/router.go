@@ -40,6 +40,7 @@ func NewRouter(h *hub.Hub) *chi.Mux {
 	// REST API routes
 	r.Route("/api", func(r chi.Router) {
 		r.Use(JSONContentType)
+		r.Use(AuthMiddleware)
 
 		// Health
 		r.Get("/health", HealthCheck)
@@ -72,6 +73,17 @@ func NewRouter(h *hub.Hub) *chi.Mux {
 
 		// Costs
 		r.Get("/costs", GetCosts)
+
+		// Proxy specific AI functionality to Python Engine
+		r.Post("/trigger", ProxyToPython)
+		r.Route("/simulate", func(r chi.Router) {
+			r.Post("/activity", ProxyToPython)
+			r.Post("/demo-day", ProxyToPython)
+		})
+		r.Route("/mcp", func(r chi.Router) {
+			r.Get("/tools", ProxyToPython)
+			// Add other MCP routes here if needed
+		})
 
 		// Activity Log
 		r.Get("/activity", GetActivityLog)

@@ -9,6 +9,7 @@ import { useAuth } from "./AuthProvider";
 const NAV = [
     { href: "/", label: "Floor Plan", icon: "🏢", badge: false },
     { href: "/kanban", label: "Kanban", icon: "📋", badge: false },
+    { href: "/chat", label: "Chat", icon: "💬", badge: false },
     { href: "/agents", label: "Agents", icon: "🤖", badge: true },
     { href: "/activity", label: "Activity", icon: "📡", badge: false },
     { href: "/settings", label: "Settings", icon: "⚙️", badge: false },
@@ -66,8 +67,8 @@ export default function Sidebar() {
                             key={n.href}
                             href={n.href}
                             className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[12px] font-medium transition-all group ${active
-                                    ? "bg-violet-600/15 text-violet-300"
-                                    : "text-neutral-500 hover:bg-neutral-800/40 hover:text-neutral-300"
+                                ? "bg-violet-600/15 text-violet-300"
+                                : "text-neutral-500 hover:bg-neutral-800/40 hover:text-neutral-300"
                                 }`}
                         >
                             <span className="text-sm shrink-0">{n.icon}</span>
@@ -94,8 +95,8 @@ export default function Sidebar() {
                 {/* WS status */}
                 <div
                     className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-[10px] ${connected
-                            ? "text-emerald-500/80"
-                            : "text-red-500/80"
+                        ? "text-emerald-500/80"
+                        : "text-red-500/80"
                         }`}
                 >
                     <span

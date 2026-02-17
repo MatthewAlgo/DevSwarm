@@ -7,10 +7,16 @@ from datetime import datetime
 from pydantic import ValidationError
 
 from models import (
-    AgentStatusEnum, RoomEnum, TaskStatusEnum,
-    AgentState, TaskModel, MessageModel,
-    AgentUpdateRequest, StateOverrideRequest,
-    TriggerTaskRequest, AgentCostRecord,
+    AgentStatusEnum,
+    RoomEnum,
+    TaskStatusEnum,
+    AgentState,
+    TaskModel,
+    MessageModel,
+    AgentUpdateRequest,
+    StateOverrideRequest,
+    TriggerTaskRequest,
+    AgentCostRecord,
 )
 
 
@@ -54,7 +60,9 @@ class TestAgentState:
 
     def test_full_construction(self):
         agent = AgentState(
-            agent_id="bob", name="Bob", role="DevOps",
+            agent_id="bob",
+            name="Bob",
+            role="DevOps",
             current_room=RoomEnum.SERVER_ROOM,
             status=AgentStatusEnum.WORKING,
             current_task="Monitoring",
@@ -89,9 +97,11 @@ class TestTaskModel:
     def test_full_construction(self):
         now = datetime.now()
         task = TaskModel(
-            id="task-1", title="Build API",
+            id="task-1",
+            title="Build API",
             status=TaskStatusEnum.IN_PROGRESS,
-            priority=5, created_by="marco",
+            priority=5,
+            created_by="marco",
             assigned_agents=["jimmy", "mona"],
             created_at=now,
         )
@@ -107,8 +117,11 @@ class TestMessageModel:
 
     def test_full_construction(self):
         msg = MessageModel(
-            id="msg-1", from_agent="bob", to_agent="marco",
-            content="System recovered", message_type="status_report",
+            id="msg-1",
+            from_agent="bob",
+            to_agent="marco",
+            content="System recovered",
+            message_type="status_report",
         )
         assert msg.message_type == "status_report"
 
@@ -127,9 +140,7 @@ class TestAgentUpdateRequest:
 
 class TestStateOverrideRequest:
     def test_required_fields(self):
-        req = StateOverrideRequest(
-            global_status="Clocked Out", default_room="Desks"
-        )
+        req = StateOverrideRequest(global_status="Clocked Out", default_room="Desks")
         assert req.message == ""
 
     def test_missing_required_raises(self):
@@ -145,7 +156,8 @@ class TestTriggerTaskRequest:
 
     def test_full(self):
         req = TriggerTaskRequest(
-            goal="Deploy v2", priority=5,
+            goal="Deploy v2",
+            priority=5,
             assigned_to=["marco", "bob"],
         )
         assert len(req.assigned_to) == 2
@@ -161,8 +173,10 @@ class TestAgentCostRecord:
 
     def test_full(self):
         cost = AgentCostRecord(
-            agent_id="mona", input_tokens=1000,
-            output_tokens=500, cost_usd=0.005,
+            agent_id="mona",
+            input_tokens=1000,
+            output_tokens=500,
+            cost_usd=0.005,
             model="gemini-2.0-flash",
         )
         assert cost.model == "gemini-2.0-flash"

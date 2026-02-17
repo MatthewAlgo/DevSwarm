@@ -110,6 +110,21 @@ go test ./... -v          # All 24 tests
 - **Marco**: CEO/orchestrator that delegates to other agents
 - **MCP Server**: Model Context Protocol for tool integration
 - **Database**: asyncpg for PostgreSQL persistence
+- **Redis Pub/Sub**: Handles real-time delta updates between services
+
+---
+
+## Development Helpers & Rules
+
+### Linting & Type Checking
+- **Frontend**: `npm run lint` / `npx tsc --noEmit`
+- **Backend (Go)**: `go vet ./...` / `golangci-lint run`
+- **AI Engine (Python)**: `ruff check .` / `mypy .`
+
+### Important Rules
+- **Contract First**: Any change to API models in `ai-engine/database.py` must be reflected in the Go backend (`internal/state/models.go`) and Frontend (`lib/types.ts`).
+- **Granular Deltas**: When adding new database mutations, always use `redis_client.publish_delta` to ensure the UI updates instantly.
+- **Auth**: Always include the Bearer token in requests from the Frontend; verified by Go middleware.
 
 ---
 

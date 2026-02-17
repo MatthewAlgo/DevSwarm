@@ -3,6 +3,7 @@
  * mocks browser APIs not available in jsdom.
  */
 import "@testing-library/jest-dom/vitest";
+import { vi } from "vitest";
 
 /* ── Mock next/navigation ── */
 vi.mock("next/navigation", () => ({
@@ -37,10 +38,9 @@ vi.mock("framer-motion", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
 
-  const wrap =
-    (tag: string) =>
+  const wrap = (tag: string) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    React.forwardRef((props: any, ref: any) => {
+    const Component = React.forwardRef((props: any, ref: any) => {
       const {
         animate,
         initial,
@@ -55,6 +55,9 @@ vi.mock("framer-motion", () => {
       } = props;
       return React.createElement(tag, { ...rest, ref });
     });
+    Component.displayName = `Motion.${tag}`;
+    return Component;
+  };
 
   return {
     motion: new Proxy(
@@ -69,6 +72,7 @@ vi.mock("framer-motion", () => {
     LayoutGroup: ({ children }: { children: React.ReactNode }) => children,
   };
 });
+
 
 /* ── localStorage polyfill ── */
 const store: Record<string, string> = {};

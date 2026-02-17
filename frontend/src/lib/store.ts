@@ -67,27 +67,56 @@ export const useStore = create<Store>((set, get) => ({
   applyWSPayload: (d) => {
     const p = d as {
       type?: string;
+      category?: "agents" | "tasks" | "messages";
+      id?: string;
+      data?: Record<string, unknown>;
       agents?: Record<string, Record<string, unknown>>;
       messages?: Record<string, unknown>[];
       tasks?: Record<string, unknown>[];
       version?: number;
     };
-    if (p.type !== "STATE_UPDATE") return;
 
-    const merged: Record<string, Agent> = { ...get().agents };
-    if (p.agents) {
-      for (const [id, raw] of Object.entries(p.agents)) {
-        merged[id] = normalizeAgent(raw);
+    if (p.type === "STATE_UPDATE") {
+      const merged: Record<string, Agent> = { ...get().agents };
+      if (p.agents) {
+        for (const [id, raw] of Object.entries(p.agents)) {
+          merged[id] = normalizeAgent(raw);
+        }
+      }
+      const msgs = (p.messages ?? []).map((m) => normalizeMessage(m));
+      const tsks = (p.tasks ?? []).map((t) => normalizeTask(t));
+      set({
+        agents: merged,
+        messages: msgs.length ? msgs : get().messages,
+        tasks: tsks.length ? tsks : get().tasks,
+        version: p.version ?? get().version + 1,
+      });
+    } else if (p.type === "DELTA_UPDATE" && p.category && p.id && p.data) {
+      if (p.category === "agents") {
+        const agents = { ...get().agents };
+        agents[p.id] = normalizeAgent(p.data);
+        set({ agents });
+      } else if (p.category === "tasks") {
+        const tasks = [...get().tasks];
+        const normalized = normalizeTask(p.data);
+        const idx = tasks.findIndex((t) => t.id === p.id);
+        if (idx !== -1) {
+          tasks[idx] = normalized;
+        } else {
+          tasks.unshift(normalized);
+        }
+        set({ tasks });
+      } else if (p.category === "messages") {
+        const messages = [...get().messages];
+        const normalized = normalizeMessage(p.data);
+        if (!messages.find((m) => m.id === p.id)) {
+          messages.unshift(normalized);
+          // Limit list for stability if needed
+          if (messages.length > 100) messages.pop();
+          set({ messages });
+        }
       }
     }
-    const msgs = (p.messages ?? []).map((m) => normalizeMessage(m));
-    const tsks = (p.tasks ?? []).map((t) => normalizeTask(t));
-    set({
-      agents: merged,
-      messages: msgs.length ? msgs : get().messages,
-      tasks: tsks.length ? tsks : get().tasks,
-      version: p.version ?? get().version + 1,
-    });
   },
 
   setAgents: (a) => set({ agents: a }),

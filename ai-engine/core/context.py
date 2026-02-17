@@ -9,6 +9,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional, Protocol, runtime_checkable
 
+from models import AgentStatusEnum, RoomEnum, TaskStatusEnum
+
 logger = logging.getLogger("devswarm.core.context")
 
 
@@ -20,8 +22,8 @@ class AgentContext(Protocol):
         self,
         agent_id: str,
         *,
-        current_room: Optional[str] = None,
-        status: Optional[str] = None,
+        current_room: Optional[RoomEnum] = None,
+        status: Optional[AgentStatusEnum] = None,
         current_task: Optional[str] = None,
         thought_chain: Optional[str] = None,
     ) -> None: ...
@@ -38,7 +40,7 @@ class AgentContext(Protocol):
         self,
         title: str,
         description: str = "",
-        status: str = "Backlog",
+        status: TaskStatusEnum = TaskStatusEnum.BACKLOG,
         priority: int = 0,
         created_by: Optional[str] = None,
         assigned_agents: Optional[list[str]] = None,
@@ -58,16 +60,21 @@ class LiveContext:
         self,
         agent_id: str,
         *,
-        current_room: Optional[str] = None,
-        status: Optional[str] = None,
+        current_room: Optional[RoomEnum] = None,
+        status: Optional[AgentStatusEnum] = None,
         current_task: Optional[str] = None,
         thought_chain: Optional[str] = None,
     ) -> None:
         import database as db
+
+        # Convert Enums to strings for DB
+        room_str = current_room.value if current_room else None
+        status_str = status.value if status else None
+
         await db.update_agent(
             agent_id,
-            current_room=current_room,
-            status=status,
+            current_room=room_str,
+            status=status_str,
             current_task=current_task,
             thought_chain=thought_chain,
         )
@@ -80,22 +87,26 @@ class LiveContext:
         message_type: str = "chat",
     ) -> str:
         import database as db
+
         return await db.create_message(from_agent, to_agent, content, message_type)
 
     async def create_task(
         self,
         title: str,
         description: str = "",
-        status: str = "Backlog",
+        status: TaskStatusEnum = TaskStatusEnum.BACKLOG,
         priority: int = 0,
         created_by: Optional[str] = None,
         assigned_agents: Optional[list[str]] = None,
     ) -> str:
         import database as db
+
+        status_str = status.value
+
         return await db.create_task(
             title=title,
             description=description,
-            status=status,
+            status=status_str,
             priority=priority,
             created_by=created_by,
             assigned_agents=assigned_agents,
@@ -105,10 +116,12 @@ class LiveContext:
         self, agent_id: str, action: str, details: Any = None
     ) -> None:
         import database as db
+
         await db.log_activity(agent_id, action, details)
 
     async def get_all_agents(self) -> list[dict]:
         import database as db
+
         return await db.get_all_agents()
 
 
@@ -130,18 +143,44 @@ class MockContext:
         self,
         agent_id: str,
         *,
-        current_room: Optional[str] = None,
-        status: Optional[str] = None,
+        current_room: Optional[RoomEnum] = None,
+        status: Optional[AgentStatusEnum] = None,
         current_task: Optional[str] = None,
         thought_chain: Optional[str] = None,
     ) -> None:
-        self.updates.append({
-            "agent_id": agent_id,
-            "current_room": current_room,
-            "status": status,
-            "current_task": current_task,
-            "thought_chain": thought_chain,
-        })
+        # Record the call
+        self.updates.append(
+            {
+                "agent_id": agent_id,
+                "current_room": current_room,
+                "status": status,
+                "current_task": current_task,
+                "thought_chain": thought_chain,
+            }
+        )
+
+        # Apply to internal state
+        for agent in self._mock_agents:
+            if agent["id"] == agent_id:
+                if current_room is not None:
+                    agent["current_room"] = current_room.value
+                if status is not None:
+                    agent["status"] = status.value
+                if current_task is not None:
+                    agent["current_task"] = current_task
+                if thought_chain is not None:
+                    agent["thought_chain"] = thought_chain
+                break
+        else:
+            # Agent not found, create a minimal entry
+            new_agent = {
+                "id": agent_id,
+                "current_room": current_room.value if current_room else None,
+                "status": status.value if status else None,
+                "current_task": current_task,
+                "thought_chain": thought_chain,
+            }
+            self._mock_agents.append(new_agent)
 
     async def create_message(
         self,
@@ -151,48 +190,65 @@ class MockContext:
         message_type: str = "chat",
     ) -> str:
         msg_id = f"msg-{len(self.messages) + 1}"
-        self.messages.append({
-            "id": msg_id,
-            "from_agent": from_agent,
-            "to_agent": to_agent,
-            "content": content,
-            "message_type": message_type,
-        })
+        self.messages.append(
+            {
+                "id": msg_id,
+                "from_agent": from_agent,
+                "to_agent": to_agent,
+                "content": content,
+                "message_type": message_type,
+            }
+        )
         return msg_id
 
     async def create_task(
         self,
         title: str,
         description: str = "",
-        status: str = "Backlog",
+        status: TaskStatusEnum = TaskStatusEnum.BACKLOG,
         priority: int = 0,
         created_by: Optional[str] = None,
         assigned_agents: Optional[list[str]] = None,
     ) -> str:
         self._task_counter += 1
         task_id = f"task-{self._task_counter}"
-        self.tasks_created.append({
-            "id": task_id,
-            "title": title,
-            "description": description,
-            "status": status,
-            "priority": priority,
-            "created_by": created_by,
-            "assigned_agents": assigned_agents or [],
-        })
+        self.tasks_created.append(
+            {
+                "id": task_id,
+                "title": title,
+                "description": description,
+                "status": status.value,
+                "priority": priority,
+                "created_by": created_by,
+                "assigned_agents": assigned_agents or [],
+            }
+        )
         return task_id
 
     async def log_activity(
         self, agent_id: str, action: str, details: Any = None
     ) -> None:
-        self.activities.append({
-            "agent_id": agent_id,
-            "action": action,
-            "details": details,
-        })
+        self.activities.append(
+            {
+                "agent_id": agent_id,
+                "action": action,
+                "details": details,
+            }
+        )
 
     async def get_all_agents(self) -> list[dict]:
         return self._mock_agents
+
+    async def get_agent(self, agent_id: str) -> Optional[dict]:
+        for agent in self._mock_agents:
+            if agent["id"] == agent_id:
+                return agent
+        return None
+
+    async def get_activity_log(self, agent_id: Optional[str] = None) -> list[dict]:
+        if agent_id:
+            return [a for a in self.activities if a["agent_id"] == agent_id]
+        return self.activities
 
     def reset(self) -> None:
         """Clear all recorded calls."""
