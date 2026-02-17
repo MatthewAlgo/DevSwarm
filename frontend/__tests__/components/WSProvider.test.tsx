@@ -126,7 +126,9 @@ describe("WSProvider", () => {
                 <span>still-renders</span>
             </WSProvider>,
         );
-        expect(getByText("still-renders")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(getByText("still-renders")).toBeInTheDocument();
+        });
     });
 
     it("disconnects WebSocket on unmount", () => {

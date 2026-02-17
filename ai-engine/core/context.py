@@ -163,9 +163,15 @@ class MockContext:
         for agent in self._mock_agents:
             if agent["id"] == agent_id:
                 if current_room is not None:
-                    agent["current_room"] = current_room.value
+                    agent["current_room"] = (
+                        current_room.value
+                        if hasattr(current_room, "value")
+                        else current_room
+                    )
                 if status is not None:
-                    agent["status"] = status.value
+                    agent["status"] = (
+                        status.value if hasattr(status, "value") else status
+                    )
                 if current_task is not None:
                     agent["current_task"] = current_task
                 if thought_chain is not None:
@@ -175,8 +181,14 @@ class MockContext:
             # Agent not found, create a minimal entry
             new_agent = {
                 "id": agent_id,
-                "current_room": current_room.value if current_room else None,
-                "status": status.value if status else None,
+                "current_room": (
+                    current_room.value
+                    if current_room and hasattr(current_room, "value")
+                    else current_room
+                ),
+                "status": (
+                    status.value if status and hasattr(status, "value") else status
+                ),
                 "current_task": current_task,
                 "thought_chain": thought_chain,
             }

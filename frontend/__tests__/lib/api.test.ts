@@ -34,6 +34,9 @@ describe("GET endpoints", () => {
     expect(result).toEqual([{ id: "marco" }]);
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("/agents"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
     );
   });
 
@@ -43,6 +46,9 @@ describe("GET endpoints", () => {
     expect(result.id).toBe("marco");
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("/agents/marco"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
     );
   });
 
@@ -51,6 +57,9 @@ describe("GET endpoints", () => {
     await api.getTasks();
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("/tasks"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
     );
   });
 
@@ -59,6 +68,9 @@ describe("GET endpoints", () => {
     await api.getTasks("marco");
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("agent_id=marco"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
     );
   });
 
@@ -67,6 +79,9 @@ describe("GET endpoints", () => {
     await api.getMessages();
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("limit=50"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
     );
   });
 
@@ -75,6 +90,9 @@ describe("GET endpoints", () => {
     await api.getMessages(10);
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("limit=10"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
     );
   });
 
@@ -82,6 +100,12 @@ describe("GET endpoints", () => {
     mockFetch.mockResolvedValueOnce(okJSON({ version: 1 }));
     const result = await api.getState();
     expect(result.version).toBe(1);
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/state"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
+    );
   });
 
   it("getCosts", async () => {
@@ -89,6 +113,9 @@ describe("GET endpoints", () => {
     await api.getCosts();
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("/costs"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
     );
   });
 
@@ -97,6 +124,9 @@ describe("GET endpoints", () => {
     await api.getActivity();
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("limit=50"),
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
     );
   });
 });
@@ -127,15 +157,18 @@ describe("POST endpoints", () => {
     await api.overrideState({ global_status: "Clocked Out" });
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("/state/override"),
-      expect.objectContaining({ method: "POST" }),
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ Authorization: expect.any(String) }),
+      }),
     );
   });
 
-  it("triggerGoal sends POST to Python engine", async () => {
+  it("triggerGoal sends POST to Go gateway (proxied)", async () => {
     mockFetch.mockResolvedValueOnce(okJSON({ ok: true }));
     await api.triggerGoal("Research AI", ["mona"]);
     const call = mockFetch.mock.calls[0];
-    expect(call[0]).toContain("8000"); // Python port
+    expect(call[0]).toContain("8080"); // Go port
     const body = JSON.parse(call[1].body);
     expect(body.goal).toBe("Research AI");
     expect(body.assigned_to).toEqual(["mona"]);
