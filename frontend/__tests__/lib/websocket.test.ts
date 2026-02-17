@@ -185,9 +185,9 @@ describe("reconnect", () => {
     ws.connect();
     await vi.advanceTimersByTimeAsync(10);
     expect(ws.connected).toBe(true);
-
-    // @ts-expect-error - accessing private field
-    expect(ws["attempts"]).toBe(0);
+    // Access private field for testing
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((ws as any).attempts).toBe(0);
   });
 });
 

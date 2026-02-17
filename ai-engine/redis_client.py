@@ -120,7 +120,7 @@ async def enqueue_task(
 ) -> str:
     """Add a task to the Redis Stream for async processing."""
     r = await get_redis()
-    task_data = {
+    task_data: dict[Any, Any] = {
         "goal": goal,
         "priority": str(priority),
         "assigned_to": json.dumps(assigned_to or []),
