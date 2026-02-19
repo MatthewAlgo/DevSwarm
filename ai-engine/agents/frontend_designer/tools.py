@@ -1,8 +1,8 @@
-"""Peter - MCP Tools for design and visual asset creation."""
+"""Frontend Designer - MCP Tools for design and visual asset creation."""
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("Peter_FrontendDesigner")
+mcp = FastMCP("FrontendDesigner_FrontendDesigner")
 
 
 @mcp.tool()

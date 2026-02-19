@@ -75,8 +75,8 @@ func TestRespondErrorInternal(t *testing.T) {
 func TestRespondJSONArray(t *testing.T) {
 	rr := httptest.NewRecorder()
 	data := []map[string]string{
-		{"id": "1", "name": "Marco"},
-		{"id": "2", "name": "Mona"},
+		{"id": "1", "name": "Orchestrator"},
+		{"id": "2", "name": "Researcher"},
 	}
 	respondJSON(rr, http.StatusOK, data)
 

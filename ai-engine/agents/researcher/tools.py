@@ -1,8 +1,8 @@
-"""Mona Lisa - MCP Tools for academic research and analysis."""
+"""Researcher - MCP Tools for academic research and analysis."""
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("MonaLisa_Capabilities")
+mcp = FastMCP("Researcher_Capabilities")
 
 
 @mcp.tool()

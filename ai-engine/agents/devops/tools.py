@@ -1,8 +1,8 @@
-"""Bob - MCP Tools for system monitoring and service management."""
+"""DevOps - MCP Tools for system monitoring and service management."""
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("Bob_DevOpsMonitor")
+mcp = FastMCP("DevOps_DevOpsMonitor")
 
 
 @mcp.tool()

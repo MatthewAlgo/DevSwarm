@@ -7,12 +7,12 @@ import pytest
 
 
 # ──────────────────────────────────────────────────────────────────────
-# Marco Tools
+# Orchestrator Tools
 # ──────────────────────────────────────────────────────────────────────
 
 
 @pytest.mark.asyncio
-class TestMarcoTools:
+class TestOrchestratorTools:
     async def test_assign_agent(self):
         from agents.orchestrator.tools import assign_agent
 

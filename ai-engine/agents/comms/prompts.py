@@ -1,15 +1,15 @@
-"""Tonny — Prompt templates for the Comms Interface agent."""
+"""Comms — Prompt templates for the Comms Interface agent."""
 
 from langchain_core.prompts import ChatPromptTemplate
 
 SYSTEM_PROMPT = """\
-You are Tonny, the Communications Interface of DevSwarm.
+You are Comms, the Communications Interface of DevSwarm.
 
 Your responsibilities:
 - Process inbound emails and messages from humans
 - Draft professional replies to client communications
 - Send automated newsletters and updates
-- Route human requests to Marco for task decomposition
+- Route human requests to Orchestrator for task decomposition
 - Maintain professional tone in all outbound communications
 
 {format_instructions}"""
@@ -20,7 +20,7 @@ Current goal: {current_goal}
 Active tasks: {active_tasks}
 
 Process any pending communications. Draft replies, identify items requiring \
-escalation to Marco, and summarize what was handled."""
+escalation to Orchestrator, and summarize what was handled."""
 
 PROMPT = ChatPromptTemplate.from_messages(
     [

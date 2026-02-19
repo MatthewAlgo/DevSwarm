@@ -1,5 +1,5 @@
 """
-Ariani — Knowledge Base Organizer Agent
+Archivist — Knowledge Base Organizer Agent
 Maintains persistent state of completed work. Converts unstructured
 conversational memory into structured Markdown documentation.
 """

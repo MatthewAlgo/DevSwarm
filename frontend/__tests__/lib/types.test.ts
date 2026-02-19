@@ -19,15 +19,15 @@ import type { Agent, Task, Message, AgentStatus, RoomType } from "@/lib/types";
 describe("normalizeAgent", () => {
   it("normalises camelCase input", () => {
     const a = normalizeAgent({
-      id: "marco",
-      name: "Marco",
+      id: "orchestrator",
+      name: "Orchestrator",
       role: "CEO",
       room: "War Room",
       status: "Working",
       currentTask: "Deploy",
       avatarColor: "#abc",
     });
-    expect(a.id).toBe("marco");
+    expect(a.id).toBe("orchestrator");
     expect(a.room).toBe("War Room");
     expect(a.currentTask).toBe("Deploy");
     expect(a.avatarColor).toBe("#abc");
@@ -35,8 +35,8 @@ describe("normalizeAgent", () => {
 
   it("normalises snake_case API response", () => {
     const a = normalizeAgent({
-      id: "bob",
-      name: "Bob",
+      id: "devops",
+      name: "DevOps",
       current_room: "Server Room",
       current_task: "Monitoring",
       thought_chain: "Checking...",
@@ -82,24 +82,24 @@ describe("normalizeTask", () => {
       id: "1",
       title: "Research",
       status: "In Progress",
-      createdBy: "marco",
-      assignedAgents: ["mona"],
+      createdBy: "orchestrator",
+      assignedAgents: ["researcher"],
     });
     expect(t.status).toBe("In Progress");
-    expect(t.assignedAgents).toEqual(["mona"]);
+    expect(t.assignedAgents).toEqual(["researcher"]);
   });
 
   it("normalises snake_case", () => {
     const t = normalizeTask({
       id: "2",
       title: "Build",
-      created_by: "bob",
-      assigned_agents: ["bob", "jimmy"],
+      created_by: "devops",
+      assigned_agents: ["devops", "crawler"],
       created_at: "2026-01-01",
       updated_at: "2026-01-02",
     });
-    expect(t.createdBy).toBe("bob");
-    expect(t.assignedAgents).toEqual(["bob", "jimmy"]);
+    expect(t.createdBy).toBe("devops");
+    expect(t.assignedAgents).toEqual(["devops", "crawler"]);
     expect(t.createdAt).toBe("2026-01-01");
   });
 
@@ -119,24 +119,24 @@ describe("normalizeMessage", () => {
   it("normalises camelCase", () => {
     const m = normalizeMessage({
       id: "1",
-      fromAgent: "marco",
-      toAgent: "mona",
+      fromAgent: "orchestrator",
+      toAgent: "researcher",
       content: "Hello",
       messageType: "delegation",
     });
-    expect(m.fromAgent).toBe("marco");
+    expect(m.fromAgent).toBe("orchestrator");
     expect(m.messageType).toBe("delegation");
   });
 
   it("normalises snake_case", () => {
     const m = normalizeMessage({
-      from_agent: "bob",
-      to_agent: "marco",
+      from_agent: "devops",
+      to_agent: "orchestrator",
       message_type: "status_report",
       created_at: "2026-01-01",
     });
-    expect(m.fromAgent).toBe("bob");
-    expect(m.toAgent).toBe("marco");
+    expect(m.fromAgent).toBe("devops");
+    expect(m.toAgent).toBe("orchestrator");
     expect(m.messageType).toBe("status_report");
   });
 

@@ -1,5 +1,5 @@
 """
-Marco — CEO / Orchestrator Agent
+Orchestrator — CEO / Orchestrator Agent
 Decomposes goals, delegates to specialists, schedules cross-agent meetings.
 Never executes direct labor.
 """
@@ -41,17 +41,33 @@ class OrchestratorAgent(BaseAgent[OrchestratorRoutingOutput]):
         """Create subtasks and delegate to specialist agents."""
         current_goal = state.get("current_goal", "")
         delegated_to: list[str] = []
+        delegated_task_ids: list[str] = []
 
-        for subtask in parsed.subtasks:
+        for i, subtask in enumerate(parsed.subtasks):
+            # Only the first delegated task enters active execution path immediately.
+            # Remaining subtasks are queued as backlog to avoid "Idle + In Progress" mismatch.
+            task_status = (
+                TaskStatusEnum.IN_PROGRESS if i == 0 else TaskStatusEnum.BACKLOG
+            )
+
             # Create task in DB
-            await context.create_task(
+            task_id = await context.create_task(
                 title=subtask.task,
                 description=f"Delegated by Orchestrator from goal: {current_goal}",
-                status=TaskStatusEnum.IN_PROGRESS,
+                status=task_status,
                 priority=subtask.priority,
                 created_by=self.agent_id,
                 assigned_agents=[subtask.agent],
             )
+            delegated_task_ids.append(task_id)
+
+            if i == 0:
+                await context.update_agent(
+                    subtask.agent,
+                    status=AgentStatusEnum.WORKING,
+                    current_task=subtask.task,
+                    thought_chain=f"Picked up delegated task: {subtask.task}",
+                )
 
             # Send delegation message
             await context.create_message(
@@ -96,6 +112,7 @@ class OrchestratorAgent(BaseAgent[OrchestratorRoutingOutput]):
         # Update state
         state["routing_decisions"] = parsed.model_dump()
         state["delegated_agents"] = delegated_to
+        state["delegated_task_ids"] = delegated_task_ids
 
         await context.update_agent(
             self.agent_id,

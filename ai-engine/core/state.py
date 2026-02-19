@@ -15,6 +15,7 @@ class OfficeState(TypedDict):
     messages: Annotated[list, "messages"]
     routing_decisions: dict
     delegated_agents: list[str]
+    delegated_task_ids: list[str]
     research_findings: dict
     content_drafts: list[dict]
     crawl_results: list[dict]
@@ -33,6 +34,7 @@ def create_initial_state(goal: str = "") -> OfficeState:
         messages=[],
         routing_decisions={},
         delegated_agents=[],
+        delegated_task_ids=[],
         research_findings={},
         content_drafts=[],
         crawl_results=[],

@@ -56,6 +56,7 @@ class TestOfficeState:
             "messages",
             "routing_decisions",
             "delegated_agents",
+            "delegated_task_ids",
             "research_findings",
             "content_drafts",
             "crawl_results",

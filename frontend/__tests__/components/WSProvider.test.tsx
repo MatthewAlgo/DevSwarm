@@ -23,16 +23,16 @@ vi.mock("@/lib/websocket", () => ({
 
 /* ── Mock api module ── */
 const mockGetAgents = vi.fn().mockResolvedValue([
-    { id: "marco", name: "Marco", role: "CEO" },
+    { id: "orchestrator", name: "Orchestrator", role: "CEO" },
 ]);
 const mockGetTasks = vi.fn().mockResolvedValue([
     { id: "t1", title: "Task", status: "Backlog" },
 ]);
 const mockGetMessages = vi.fn().mockResolvedValue([
-    { id: "m1", from_agent: "marco", content: "Hello" },
+    { id: "m1", from_agent: "orchestrator", content: "Hello" },
 ]);
 const mockGetCosts = vi.fn().mockResolvedValue([
-    { agentId: "marco", totalCost: 0.01 },
+    { agentId: "orchestrator", totalCost: 0.01 },
 ]);
 
 vi.mock("@/lib/api", () => ({
@@ -90,7 +90,7 @@ describe("WSProvider", () => {
         render(<WSProvider><div /></WSProvider>);
         await waitFor(() => {
             expect(Object.keys(useStore.getState().agents).length).toBe(1);
-            expect(useStore.getState().agents["marco"].name).toBe("Marco");
+            expect(useStore.getState().agents["orchestrator"].name).toBe("Orchestrator");
         });
     });
 

@@ -69,6 +69,7 @@ class TestOrchestratorAgent:
         result = await agent.process(base_state)
 
         assert result["delegated_agents"] == ["researcher", "viral_engineer"]
+        assert len(result["delegated_task_ids"]) == 2
         assert "routing_decisions" in result
         assert isinstance(result["routing_decisions"], dict)
 

@@ -11,7 +11,7 @@ import (
 func TestAgentJSON(t *testing.T) {
 	now := time.Now().Truncate(time.Second)
 	agent := Agent{
-		ID: "marco", Name: "Marco", Role: "CEO",
+		ID: "orchestrator", Name: "Orchestrator", Role: "CEO",
 		CurrentRoom: "War Room", Status: "Working",
 		CurrentTask: "Delegation", ThoughtChain: "Analyzing...",
 		TechStack: []string{"Python", "Go"}, AvatarColor: "#6366f1",
@@ -28,8 +28,8 @@ func TestAgentJSON(t *testing.T) {
 		t.Fatalf("Unmarshal failed: %v", err)
 	}
 
-	if restored.ID != "marco" {
-		t.Errorf("ID: got %q, want %q", restored.ID, "marco")
+	if restored.ID != "orchestrator" {
+		t.Errorf("ID: got %q, want %q", restored.ID, "orchestrator")
 	}
 	if restored.CurrentRoom != "War Room" {
 		t.Errorf("CurrentRoom: got %q, want %q", restored.CurrentRoom, "War Room")
@@ -57,8 +57,8 @@ func TestAgentJSONFieldNames(t *testing.T) {
 func TestTaskJSON(t *testing.T) {
 	task := Task{
 		ID: "1", Title: "Research AI", Description: "Deep dive",
-		Status: "In Progress", Priority: 5, CreatedBy: "marco",
-		AssignedAgents: []string{"mona", "jimmy"},
+		Status: "In Progress", Priority: 5, CreatedBy: "orchestrator",
+		AssignedAgents: []string{"researcher", "crawler"},
 	}
 
 	data, err := json.Marshal(task)
@@ -78,7 +78,7 @@ func TestTaskJSON(t *testing.T) {
 }
 
 func TestCreateTaskRequestJSON(t *testing.T) {
-	jsonStr := `{"title":"Build API","description":"REST endpoints","status":"Backlog","priority":3,"createdBy":"marco","assignedAgents":["bob","jimmy"]}`
+	jsonStr := `{"title":"Build API","description":"REST endpoints","status":"Backlog","priority":3,"createdBy":"orchestrator","assignedAgents":["devops","crawler"]}`
 
 	var req CreateTaskRequest
 	if err := json.Unmarshal([]byte(jsonStr), &req); err != nil {
@@ -98,7 +98,7 @@ func TestCreateTaskRequestJSON(t *testing.T) {
 
 func TestMessageJSON(t *testing.T) {
 	msg := Message{
-		ID: "1", FromAgent: "marco", ToAgent: "mona",
+		ID: "1", FromAgent: "orchestrator", ToAgent: "researcher",
 		Content: "Go research", MessageType: "delegation",
 	}
 
@@ -106,7 +106,7 @@ func TestMessageJSON(t *testing.T) {
 	var restored Message
 	json.Unmarshal(data, &restored)
 
-	if restored.FromAgent != "marco" {
+	if restored.FromAgent != "orchestrator" {
 		t.Errorf("FromAgent: got %q", restored.FromAgent)
 	}
 	if restored.MessageType != "delegation" {
@@ -115,19 +115,19 @@ func TestMessageJSON(t *testing.T) {
 }
 
 func TestCreateMessageRequestJSON(t *testing.T) {
-	jsonStr := `{"fromAgent":"bob","toAgent":"marco","content":"System healthy","messageType":"status_report"}`
+	jsonStr := `{"fromAgent":"devops","toAgent":"orchestrator","content":"System healthy","messageType":"status_report"}`
 
 	var req CreateMessageRequest
 	json.Unmarshal([]byte(jsonStr), &req)
 
-	if req.FromAgent != "bob" || req.ToAgent != "marco" {
+	if req.FromAgent != "devops" || req.ToAgent != "orchestrator" {
 		t.Errorf("Agent fields incorrect: from=%q, to=%q", req.FromAgent, req.ToAgent)
 	}
 }
 
 func TestAgentCostJSON(t *testing.T) {
 	cost := AgentCost{
-		AgentID: "mona", InputTokens: 5000,
+		AgentID: "researcher", InputTokens: 5000,
 		OutputTokens: 2000, CostUSD: 0.025,
 	}
 
@@ -149,7 +149,7 @@ func TestAgentCostJSON(t *testing.T) {
 
 func TestActivityEntryJSON(t *testing.T) {
 	entry := ActivityEntry{
-		ID: "1", AgentID: "marco", Action: "task_created",
+		ID: "1", AgentID: "orchestrator", Action: "task_created",
 		Details: map[string]interface{}{"task_id": "42", "title": "Research"},
 	}
 
@@ -168,7 +168,7 @@ func TestActivityEntryJSON(t *testing.T) {
 func TestWSPayloadJSON(t *testing.T) {
 	payload := WSPayload{
 		Type:    "STATE_UPDATE",
-		Agents:  map[string]Agent{"marco": {ID: "marco", Name: "Marco"}},
+		Agents:  map[string]Agent{"orchestrator": {ID: "orchestrator", Name: "Orchestrator"}},
 		Version: 42,
 	}
 
@@ -182,8 +182,8 @@ func TestWSPayloadJSON(t *testing.T) {
 	if restored.Version != 42 {
 		t.Errorf("Version: got %d", restored.Version)
 	}
-	if _, ok := restored.Agents["marco"]; !ok {
-		t.Error("Marco agent not in map")
+	if _, ok := restored.Agents["orchestrator"]; !ok {
+		t.Error("Orchestrator agent not in map")
 	}
 }
 

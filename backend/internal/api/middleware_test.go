@@ -63,3 +63,33 @@ func TestRequestLoggerPassesThrough(t *testing.T) {
 		t.Errorf("Status: got %d, want %d", rr.Code, http.StatusOK)
 	}
 }
+
+func TestAuthMiddlewareSkipsAPIHealth(t *testing.T) {
+	handler := AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/health", nil)
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("Status: got %d, want %d", rr.Code, http.StatusOK)
+	}
+}
+
+func TestAuthMiddlewareRejectsMissingToken(t *testing.T) {
+	handler := AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/agents", nil)
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusUnauthorized {
+		t.Errorf("Status: got %d, want %d", rr.Code, http.StatusUnauthorized)
+	}
+}

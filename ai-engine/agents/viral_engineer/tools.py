@@ -1,8 +1,8 @@
-"""Dan - MCP Tools for content creation and sentiment analysis."""
+"""Viral Engineer - MCP Tools for content creation and sentiment analysis."""
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("Dan_ViralEngineer")
+mcp = FastMCP("ViralEngineer_Capabilities")
 
 
 @mcp.tool()

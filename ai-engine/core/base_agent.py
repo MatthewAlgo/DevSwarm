@@ -135,7 +135,7 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
         try:
             # 1. Set Working
             agent_logger.info(f"{self.name} starting work")
-            # Don't force move to default room - allow Marco to place them in War Room
+            # Don't force move to default room - allow Orchestrator to place them in War Room
             await ctx.update_agent(
                 self.agent_id,
                 status=AgentStatusEnum.WORKING,

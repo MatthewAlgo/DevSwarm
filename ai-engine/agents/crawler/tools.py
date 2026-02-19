@@ -1,8 +1,8 @@
-"""Jimmy - MCP Tools for web crawling and content extraction."""
+"""Crawler - MCP Tools for web crawling and content extraction."""
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("Jimmy_ContentCrawler")
+mcp = FastMCP("Crawler_ContentCrawler")
 
 
 @mcp.tool()

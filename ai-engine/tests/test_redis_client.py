@@ -4,12 +4,15 @@ Tests pub/sub, task queue (Streams), and caching operations.
 """
 
 import os
+from urllib.parse import urlparse, urlunparse
 
 import pytest
 import pytest_asyncio
 
-# Set test Redis URL
-os.environ.setdefault("REDIS_URL", "redis://localhost:6379/1")  # Use DB 1 for tests
+# Force a dedicated Redis DB for tests even when REDIS_URL is already set.
+base_redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+parsed_redis_url = urlparse(base_redis_url)
+os.environ["REDIS_URL"] = urlunparse(parsed_redis_url._replace(path="/1"))
 
 import redis_client
 
@@ -65,7 +68,7 @@ class TestPubSub:
     @pytest.mark.asyncio
     async def test_publish_agent_event(self, redis_conn):
         count = await redis_client.publish_agent_event(
-            agent_id="marco",
+            agent_id="orchestrator",
             event_type="status_change",
             data={"status": "Working", "room": "War Room"},
         )
@@ -103,7 +106,7 @@ class TestTaskQueue:
         await redis_client.enqueue_task(
             goal="Test task",
             priority=1,
-            assigned_to=["marco", "jimmy"],
+            assigned_to=["orchestrator", "crawler"],
         )
         # The original test asserted on msg_id, but the instruction is to remove its assignment.
         # Since msg_id is no longer assigned, these assertions are removed.
@@ -120,7 +123,7 @@ class TestTaskQueue:
         await redis_client.enqueue_task(
             goal="Build a feature",
             priority=5,
-            assigned_to=["bob"],
+            assigned_to=["devops"],
         )
 
         # Dequeue
@@ -129,7 +132,7 @@ class TestTaskQueue:
         task = tasks[0]
         assert task["goal"] == "Build a feature"
         assert task["priority"] == 5
-        assert task["assigned_to"] == ["bob"]
+        assert task["assigned_to"] == ["devops"]
 
         # Ack
         result = await redis_client.ack_task(task["id"])
@@ -161,9 +164,9 @@ class TestTaskQueue:
 class TestCaching:
     @pytest.mark.asyncio
     async def test_cache_set_get(self, redis_conn):
-        await redis_client.cache_set("test_key", {"name": "Marco", "role": "PM"})
+        await redis_client.cache_set("test_key", {"name": "Orchestrator", "role": "PM"})
         result = await redis_client.cache_get("test_key")
-        assert result == {"name": "Marco", "role": "PM"}
+        assert result == {"name": "Orchestrator", "role": "PM"}
 
     @pytest.mark.asyncio
     async def test_cache_get_missing(self, redis_conn):
@@ -193,7 +196,7 @@ class TestCaching:
 
     @pytest.mark.asyncio
     async def test_invalidate_agent_cache(self, redis_conn):
-        await redis_client.cache_set("agents", [{"id": "marco"}])
+        await redis_client.cache_set("agents", [{"id": "orchestrator"}])
         await redis_client.cache_set("state", {"version": 1})
         deleted = await redis_client.invalidate_agent_cache()
         assert deleted == 2

@@ -21,7 +21,9 @@ export function useInitialData() {
         ]);
 
         const aMap = (a || []).reduce<Record<string, Agent>>((acc, curr) => {
-          acc[curr.id] = normalizeAgent(curr);
+          const normalized = normalizeAgent(curr);
+          if (!normalized.id) return acc;
+          acc[normalized.id] = normalized;
           return acc;
         }, {});
 

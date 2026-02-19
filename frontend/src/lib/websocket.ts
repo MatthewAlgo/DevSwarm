@@ -6,6 +6,19 @@
 type OnMessage = (data: unknown) => void;
 type OnStatus = (connected: boolean) => void;
 
+function resolveWSUrl(): string {
+  if (process.env.NEXT_PUBLIC_WS_URL) {
+    return process.env.NEXT_PUBLIC_WS_URL;
+  }
+
+  if (typeof window !== "undefined") {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${window.location.host}/ws`;
+  }
+
+  return "ws://localhost:8080/ws";
+}
+
 export class DevSwarmWS {
   private ws: WebSocket | null = null;
   private url: string;
@@ -16,17 +29,21 @@ export class DevSwarmWS {
   private closed = false;
 
   constructor(url?: string) {
-    this.url =
-      url ??
-      (typeof window !== "undefined"
-        ? process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8080/ws"
-        : "ws://localhost:8080/ws");
+    this.url = url ?? resolveWSUrl();
   }
 
   /* ── lifecycle ── */
 
   connect(): void {
-    if (this.ws?.readyState === WebSocket.OPEN) return;
+    const CONNECTING =
+      typeof WebSocket.CONNECTING === "number" ? WebSocket.CONNECTING : 0;
+    if (
+      this.ws &&
+      (this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === CONNECTING)
+    ) {
+      return;
+    }
     this.closed = false;
 
     try {
@@ -60,16 +77,19 @@ export class DevSwarmWS {
   }
 
   disconnect(): void {
+    const CONNECTING =
+      typeof WebSocket.CONNECTING === "number" ? WebSocket.CONNECTING : 0;
     this.closed = true;
     if (this.timer) clearTimeout(this.timer);
-    if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
-      // If still connecting, we can't close "nicely" without a warning in some browsers
-      // but we should still try to null it or set a flag to ignore the open.
-      this.ws.onopen = null;
+    if (this.ws && this.ws.readyState === CONNECTING) {
+      // Avoid calling close() during CONNECTING (browser warning in dev/HMR flows).
+      const pending = this.ws;
+      pending.onopen = () => {
+        pending.close(1000, "client_disconnect");
+      };
+      pending.onclose = null;
       this.ws.onmessage = null;
-      this.ws.onclose = null;
       this.ws.onerror = null;
-      this.ws.close();
     } else {
       this.ws?.close(1000, "client_disconnect");
     }

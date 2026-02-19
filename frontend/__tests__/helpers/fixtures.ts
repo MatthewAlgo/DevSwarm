@@ -6,9 +6,9 @@ import type { Agent, Task, Message, AgentCost, ActivityEntry } from "@/lib/types
 
 /* ── Agents ── */
 
-export const MARCO: Agent = {
-  id: "marco",
-  name: "Marco",
+export const ORCHESTRATOR: Agent = {
+  id: "orchestrator",
+  name: "Orchestrator",
   role: "CEO & Orchestrator",
   room: "Private Office",
   status: "Working",
@@ -19,10 +19,10 @@ export const MARCO: Agent = {
   updatedAt: "2026-02-15T00:00:00Z",
 };
 
-export const MONA: Agent = {
-  id: "mona",
-  name: "Mona Lisa",
-  role: "Researcher",
+export const RESEARCHER: Agent = {
+  id: "researcher",
+  name: "Researcher",
+  role: "Deep Researcher",
   room: "War Room",
   status: "Idle",
   currentTask: "",
@@ -32,10 +32,10 @@ export const MONA: Agent = {
   updatedAt: "2026-02-15T00:00:00Z",
 };
 
-export const BOB: Agent = {
-  id: "bob",
-  name: "Bob",
-  role: "DevOps",
+export const DEVOPS: Agent = {
+  id: "devops",
+  name: "DevOps",
+  role: "DevOps Monitor",
   room: "Server Room",
   status: "Error",
   currentTask: "Monitoring",
@@ -46,8 +46,8 @@ export const BOB: Agent = {
 };
 
 export const CLOCKED_OUT_AGENT: Agent = {
-  id: "peter",
-  name: "Peter",
+  id: "frontend_designer",
+  name: "Frontend Designer",
   role: "Designer",
   room: "Desks",
   status: "Clocked Out",
@@ -59,10 +59,10 @@ export const CLOCKED_OUT_AGENT: Agent = {
 };
 
 export const ALL_AGENTS: Record<string, Agent> = {
-  marco: MARCO,
-  mona: MONA,
-  bob: BOB,
-  peter: CLOCKED_OUT_AGENT,
+  orchestrator: ORCHESTRATOR,
+  researcher: RESEARCHER,
+  devops: DEVOPS,
+  frontend_designer: CLOCKED_OUT_AGENT,
 };
 
 /* ── Tasks ── */
@@ -73,8 +73,8 @@ export const TASK_BACKLOG: Task = {
   description: "Deep dive into LangGraph vs CrewAI",
   status: "Backlog",
   priority: 3,
-  createdBy: "marco",
-  assignedAgents: ["mona"],
+  createdBy: "orchestrator",
+  assignedAgents: ["researcher"],
   createdAt: "2026-02-14T10:00:00Z",
   updatedAt: "2026-02-14T10:00:00Z",
 };
@@ -85,8 +85,8 @@ export const TASK_IN_PROGRESS: Task = {
   description: "Setup Grafana + Prometheus",
   status: "In Progress",
   priority: 5,
-  createdBy: "bob",
-  assignedAgents: ["bob"],
+  createdBy: "devops",
+  assignedAgents: ["devops"],
   createdAt: "2026-02-14T11:00:00Z",
   updatedAt: "2026-02-14T12:00:00Z",
 };
@@ -97,8 +97,8 @@ export const TASK_DONE: Task = {
   description: "",
   status: "Done",
   priority: 1,
-  createdBy: "marco",
-  assignedAgents: ["peter"],
+  createdBy: "orchestrator",
+  assignedAgents: ["frontend_designer"],
   createdAt: "2026-02-13T09:00:00Z",
   updatedAt: "2026-02-14T15:00:00Z",
 };
@@ -109,8 +109,8 @@ export const ALL_TASKS: Task[] = [TASK_BACKLOG, TASK_IN_PROGRESS, TASK_DONE];
 
 export const MESSAGE_DELEGATION: Message = {
   id: "msg-1",
-  fromAgent: "marco",
-  toAgent: "mona",
+  fromAgent: "orchestrator",
+  toAgent: "researcher",
   content: "Research AI agent frameworks",
   messageType: "delegation",
   createdAt: "2026-02-15T00:01:00Z",
@@ -118,8 +118,8 @@ export const MESSAGE_DELEGATION: Message = {
 
 export const MESSAGE_CHAT: Message = {
   id: "msg-2",
-  fromAgent: "bob",
-  toAgent: "marco",
+  fromAgent: "devops",
+  toAgent: "orchestrator",
   content: "System recovered",
   messageType: "chat",
   createdAt: "2026-02-15T00:02:00Z",
@@ -132,18 +132,18 @@ export const ALL_MESSAGES: Message[] = [MESSAGE_DELEGATION, MESSAGE_CHAT];
 export const WS_STATE_UPDATE = {
   type: "STATE_UPDATE",
   agents: {
-    marco: {
-      id: "marco",
-      name: "Marco",
+    orchestrator: {
+      id: "orchestrator",
+      name: "Orchestrator",
       role: "CEO",
       room: "Private Office",
       status: "Working",
       current_task: "Sprint planning",
       avatar_color: "#8b5cf6",
     },
-    mona: {
-      id: "mona",
-      name: "Mona Lisa",
+    researcher: {
+      id: "researcher",
+      name: "Researcher",
       role: "Researcher",
       room: "War Room",
       status: "Idle",
@@ -152,8 +152,8 @@ export const WS_STATE_UPDATE = {
   messages: [
     {
       id: "msg-1",
-      from_agent: "marco",
-      to_agent: "mona",
+      from_agent: "orchestrator",
+      to_agent: "researcher",
       content: "Start research",
       message_type: "delegation",
     },
@@ -168,8 +168,8 @@ export const WS_INVALID_TYPE = {
 
 /* ── Costs & Activity ── */
 
-export const COST_MARCO: AgentCost = {
-  agentId: "marco",
+export const COST_ORCHESTRATOR: AgentCost = {
+  agentId: "orchestrator",
   totalInput: 5000,
   totalOutput: 2000,
   totalCost: 0.025,
@@ -177,7 +177,7 @@ export const COST_MARCO: AgentCost = {
 
 export const ACTIVITY_ENTRY: ActivityEntry = {
   id: "act-1",
-  agentId: "marco",
+  agentId: "orchestrator",
   action: "task_created",
   details: { taskId: "task-1", title: "Research" },
   createdAt: "2026-02-15T00:05:00Z",

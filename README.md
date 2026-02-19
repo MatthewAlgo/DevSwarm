@@ -118,14 +118,14 @@ PYTHONPATH=. pytest tests/agents/test_agent_probabilistic.py
 
 ## 🤖 Meet the Swarm
 
-- **Marco (CEO/Orchestrator)**: The central brain. Analyzes high-level goals and delegates tasks.
-- **Mona Lisa (Deep Researcher)**: Conducts academic and competitor research.
-- **Jimmy (Content Crawler)**: Scrapes the web and crawls documentation.
-- **Ariani (KB Organizer)**: Keeps Notion and files structured.
-- **Peter (Frontend Designer)**: Iterates on UI/UX mockups.
-- **Tonny (Comms Interface)**: Handles email and newsletters.
-- **Bob (DevOps Monitor)**: Watches server logs and uptime.
-- **Dan (Viral Engineer)**: Manages social sentiment and trends.
+- **Orchestrator (CEO/Orchestrator)**: The central brain. Analyzes high-level goals and delegates tasks.
+- **Researcher (Deep Researcher)**: Conducts academic and competitor research.
+- **Crawler (Content Crawler)**: Scrapes the web and crawls documentation.
+- **Archivist (KB Organizer)**: Keeps Notion and files structured.
+- **Frontend Designer (Frontend Designer)**: Iterates on UI/UX mockups.
+- **Comms (Comms Interface)**: Handles email and newsletters.
+- **DevOps (DevOps Monitor)**: Watches server logs and uptime.
+- **Viral Engineer (Viral Engineer)**: Manages social sentiment and trends.
 
 ---
 

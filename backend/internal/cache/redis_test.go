@@ -143,7 +143,7 @@ func TestEnqueueTask(t *testing.T) {
 	// Enqueue a task
 	id, err := EnqueueTask(ctx, map[string]interface{}{
 		"goal":     "test_goal",
-		"agent_id": "marco",
+		"agent_id": "orchestrator",
 	})
 	if err != nil {
 		t.Fatalf("EnqueueTask failed: %v", err)

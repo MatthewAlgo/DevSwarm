@@ -1,5 +1,5 @@
 """
-Tonny — Comms Interface Agent
+Comms — Comms Interface Agent
 Sole ingestion point for inbound human requests and egress point for automated communications.
 """
 

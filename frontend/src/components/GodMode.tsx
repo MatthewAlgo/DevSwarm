@@ -183,7 +183,7 @@ export default function GodMode() {
                                             value={goal}
                                             onChange={(e) => setGoal(e.target.value)}
                                             onKeyDown={(e) => e.key === "Enter" && trigger()}
-                                            placeholder="Enter a goal for Marco to orchestrate…"
+                                            placeholder="Enter a goal for Orchestrator to orchestrate…"
                                             className="flex-1 bg-neutral-900/80 border border-neutral-800/50 rounded-xl px-4 py-2.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-violet-700/50 focus:ring-1 focus:ring-violet-700/25 transition-all"
                                         />
                                         <button

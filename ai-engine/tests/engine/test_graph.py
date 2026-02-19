@@ -19,14 +19,14 @@ from graph import (
 class TestRouteFromOrchestrator:
     """Test Orchestrator's delegation routing logic."""
 
-    def test_no_delegated_agents_routes_to_crawler(self):
+    def test_no_delegated_agents_routes_to_end(self):
         state = create_initial_state()
-        assert route_from_orchestrator(state) == NodeName.CRAWLER
+        assert route_from_orchestrator(state) == "__end__"
 
-    def test_empty_delegation_routes_to_crawler(self):
+    def test_empty_delegation_routes_to_end(self):
         state = create_initial_state()
         state["delegated_agents"] = []
-        assert route_from_orchestrator(state) == NodeName.CRAWLER
+        assert route_from_orchestrator(state) == "__end__"
 
     @pytest.mark.parametrize(
         "agent,expected_node",
@@ -51,25 +51,25 @@ class TestRouteFromOrchestrator:
         state["delegated_agents"] = ["researcher", "viral_engineer", "frontend_designer"]
         assert route_from_orchestrator(state) == NodeName.RESEARCHER
 
-    def test_unknown_agent_falls_back_to_crawler(self):
+    def test_unknown_agent_falls_back_to_end(self):
         state = create_initial_state()
         state["delegated_agents"] = ["unknown_agent"]
-        assert route_from_orchestrator(state) == NodeName.CRAWLER
+        assert route_from_orchestrator(state) == "__end__"
 
 
 class TestRouteAfterResearch:
     """Test Researcher's post-research routing."""
 
-    def test_with_findings_routes_to_dan(self):
+    def test_with_findings_routes_to_viral_engineer(self):
         state = create_initial_state()
         state["research_findings"] = {"title": "Report", "key_findings": ["F1"]}
         assert route_after_research(state) == NodeName.VIRAL_ENGINEER
 
-    def test_no_findings_routes_to_ariani(self):
+    def test_no_findings_routes_to_archivist(self):
         state = create_initial_state()
         assert route_after_research(state) == NodeName.ARCHIVIST
 
-    def test_empty_findings_routes_to_ariani(self):
+    def test_empty_findings_routes_to_archivist(self):
         state = create_initial_state()
         state["research_findings"] = {}
         assert route_after_research(state) == NodeName.ARCHIVIST
@@ -78,7 +78,7 @@ class TestRouteAfterResearch:
 class TestRouteAfterContent:
     """Test post-content routing."""
 
-    def test_always_routes_to_ariani(self):
+    def test_always_routes_to_archivist(self):
         state = create_initial_state()
         assert route_after_content(state) == NodeName.ARCHIVIST
 
@@ -86,7 +86,7 @@ class TestRouteAfterContent:
 class TestShouldRunHealthCheck:
     """Test error-based routing for DevOps."""
 
-    def test_with_error_routes_to_bob(self):
+    def test_with_error_routes_to_devops(self):
         state = create_initial_state()
         state["error"] = "Agent crashed"
         assert should_run_health_check(state) == NodeName.DEVOPS
@@ -125,7 +125,7 @@ class TestBuildWorkflow:
         actual_nodes = set(wf.nodes.keys())
         assert expected_nodes.issubset(actual_nodes)
 
-    def test_entry_point_is_marco(self):
+    def test_entry_point_is_orchestrator(self):
         wf = build_workflow()
         # The entry point should route to Orchestrator first
         wf.compile()

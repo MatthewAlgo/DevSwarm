@@ -30,7 +30,7 @@ func RequestLogger(next http.Handler) http.Handler {
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Skip auth for health check
-		if r.URL.Path == "/health" {
+		if r.URL.Path == "/health" || r.URL.Path == "/api/health" {
 			next.ServeHTTP(w, r)
 			return
 		}

@@ -1,1 +1,1 @@
-"""Peter - Frontend Designer Agent"""
+"""Frontend Designer - Frontend Designer Agent"""

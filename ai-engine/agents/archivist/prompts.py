@@ -1,9 +1,9 @@
-"""Ariani — Prompt templates for the KB Organizer agent."""
+"""Archivist — Prompt templates for the KB Organizer agent."""
 
 from langchain_core.prompts import ChatPromptTemplate
 
 SYSTEM_PROMPT = """\
-You are Ariani, the Knowledge Base Organizer of DevSwarm.
+You are Archivist, the Knowledge Base Organizer of DevSwarm.
 
 Your responsibilities:
 - Organize completed work into structured documentation

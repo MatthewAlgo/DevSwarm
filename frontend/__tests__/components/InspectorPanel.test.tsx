@@ -2,24 +2,25 @@
  * Tests for components/InspectorPanel.tsx — agent inspector panel.
  */
 import { describe, it, expect, beforeEach } from "vitest";
+import { act } from "react";
 import { render, screen } from "@testing-library/react";
 import InspectorPanel from "@/components/InspectorPanel";
 import { useStore } from "@/lib/store";
-import { ALL_AGENTS, ALL_TASKS, ALL_MESSAGES, MARCO } from "../helpers/fixtures";
+import { ALL_AGENTS, ALL_TASKS, ALL_MESSAGES, ORCHESTRATOR } from "../helpers/fixtures";
 
 beforeEach(() => {
     useStore.setState({
         agents: ALL_AGENTS,
         tasks: ALL_TASKS,
         messages: ALL_MESSAGES,
-        selectedId: "marco",
+        selectedId: "orchestrator",
     });
 });
 
 describe("InspectorPanel", () => {
     it("shows agent name when selected", () => {
         render(<InspectorPanel />);
-        expect(screen.getByText("Marco")).toBeInTheDocument();
+        expect(screen.getByText("Orchestrator")).toBeInTheDocument();
     });
 
     it("shows agent role", () => {
@@ -67,5 +68,17 @@ describe("InspectorPanel", () => {
         render(<InspectorPanel />);
         expect(screen.getByText("Current Task")).toBeInTheDocument();
         expect(screen.getByText("Tech Stack")).toBeInTheDocument();
+    });
+
+    it("switches details when selected agent changes", () => {
+        render(<InspectorPanel />);
+        expect(screen.getByText("Orchestrator")).toBeInTheDocument();
+
+        act(() => {
+            useStore.setState({ selectedId: "researcher" });
+        });
+
+        expect(screen.getByText("Researcher")).toBeInTheDocument();
+        expect(screen.queryByText("Orchestrator")).not.toBeInTheDocument();
     });
 });

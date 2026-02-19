@@ -37,6 +37,9 @@ func NewRouter(h *hub.Hub) *chi.Mux {
 		hub.ServeWs(h, w, r)
 	})
 
+	// Public health alias for infra checks that hit /health directly.
+	r.Get("/health", HealthCheck)
+
 	// REST API routes
 	r.Route("/api", func(r chi.Router) {
 		r.Use(JSONContentType)

@@ -17,7 +17,7 @@ export default function DashboardHome() {
             {/* Inspector sidebar (desktop) */}
             {selectedId && (
                 <aside className="hidden md:block w-80 lg:w-[22rem] border-l border-neutral-800/50 overflow-y-auto">
-                    <InspectorPanel />
+                    <InspectorPanel key={selectedId} />
                 </aside>
             )}
         </div>

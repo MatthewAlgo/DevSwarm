@@ -55,7 +55,7 @@ DevSwarm/
 │   ├── cmd/server/    # Entrypoint
 │   └── internal/      # Hub, state, handlers
 ├── ai-engine/         # Python LangGraph engine
-│   ├── agents/        # 8 AI agents (marco, jimmy, pablo, etc.)
+│   ├── agents/        # 8 AI agents (orchestrator, crawler, pablo, etc.)
 │   ├── core/          # State, schemas, context, graph
 │   └── tests/         # pytest suite (231 tests)
 │       ├── agents/    # Agent-specific tests
@@ -107,7 +107,7 @@ go test ./... -v          # All 24 tests
 
 ### AI Engine (Python)
 - **Agent graph**: LangGraph StateGraph orchestrating 8 agents
-- **Marco**: CEO/orchestrator that delegates to other agents
+- **Orchestrator**: CEO/orchestrator that delegates to other agents
 - **MCP Server**: Model Context Protocol for tool integration
 - **Database**: asyncpg for PostgreSQL persistence
 - **Redis Pub/Sub**: Handles real-time delta updates between services

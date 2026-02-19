@@ -1,6 +1,6 @@
 """
-Dan — Viral Engineer Agent
-Consumes research from Mona Lisa to generate external-facing content
+Viral Engineer — Viral Engineer Agent
+Consumes research from Researcher to generate external-facing content
 optimized for algorithmic engagement metrics.
 """
 

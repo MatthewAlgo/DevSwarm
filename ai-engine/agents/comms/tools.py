@@ -1,8 +1,8 @@
-"""Tonny - MCP Tools for email and communication management."""
+"""Comms - MCP Tools for email and communication management."""
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("Tonny_CommsInterface")
+mcp = FastMCP("Comms_CommsInterface")
 
 
 @mcp.tool()

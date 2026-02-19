@@ -1,1 +1,1 @@
-"""Bob - DevOps Monitor Agent"""
+"""DevOps - DevOps Monitor Agent"""
