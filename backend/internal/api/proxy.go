@@ -36,6 +36,18 @@ func ProxyToPython(w http.ResponseWriter, r *http.Request) {
 	// Logging for debug
 	fmt.Printf("[Proxy] Forwarding %s to %s\n", r.URL.Path, aiURL)
 
+	// The Go gateway owns browser-facing CORS headers.
+	// Strip upstream CORS headers from the Python service to avoid invalid
+	// merged values like "http://localhost:3000, *".
+	proxy.ModifyResponse = func(resp *http.Response) error {
+		resp.Header.Del("Access-Control-Allow-Origin")
+		resp.Header.Del("Access-Control-Allow-Credentials")
+		resp.Header.Del("Access-Control-Allow-Headers")
+		resp.Header.Del("Access-Control-Allow-Methods")
+		resp.Header.Del("Access-Control-Expose-Headers")
+		return nil
+	}
+
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 		fmt.Printf("[Proxy] Error: %v\n", err)
 		respondError(w, http.StatusBadGateway, "AI Engine unavailable")

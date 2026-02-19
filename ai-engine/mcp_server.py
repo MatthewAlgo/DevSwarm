@@ -7,14 +7,14 @@ import logging
 
 from mcp.server.fastmcp import FastMCP
 
-from agents.orchestrator.tools import mcp as marco_mcp
-from agents.crawler.tools import mcp as jimmy_mcp
-from agents.researcher.tools import mcp as mona_mcp
-from agents.viral_engineer.tools import mcp as dan_mcp
-from agents.comms.tools import mcp as tonny_mcp
-from agents.devops.tools import mcp as bob_mcp
-from agents.archivist.tools import mcp as ariani_mcp
-from agents.frontend_designer.tools import mcp as peter_mcp
+from agents.orchestrator.tools import mcp as orchestrator_mcp
+from agents.crawler.tools import mcp as crawler_mcp
+from agents.researcher.tools import mcp as researcher_mcp
+from agents.viral_engineer.tools import mcp as viral_engineer_mcp
+from agents.comms.tools import mcp as comms_mcp
+from agents.devops.tools import mcp as devops_mcp
+from agents.archivist.tools import mcp as archivist_mcp
+from agents.frontend_designer.tools import mcp as frontend_designer_mcp
 
 logger = logging.getLogger("devswarm.mcp_server")
 
@@ -23,16 +23,15 @@ unified_mcp = FastMCP("DevSwarm_Unified")
 
 # Registry of all agent MCP servers for external exposure
 AGENT_MCP_SERVERS = {
-    "marco": marco_mcp,
-    "jimmy": jimmy_mcp,
-    "mona": mona_mcp,
-    "dan": dan_mcp,
-    "tonny": tonny_mcp,
-    "bob": bob_mcp,
-    "ariani": ariani_mcp,
-    "peter": peter_mcp,
+    "orchestrator": orchestrator_mcp,
+    "crawler": crawler_mcp,
+    "researcher": researcher_mcp,
+    "viral_engineer": viral_engineer_mcp,
+    "comms": comms_mcp,
+    "devops": devops_mcp,
+    "archivist": archivist_mcp,
+    "frontend_designer": frontend_designer_mcp,
 }
-
 
 def get_mcp_server(agent_id: str) -> FastMCP | None:
     """Get the MCP server for a specific agent."""

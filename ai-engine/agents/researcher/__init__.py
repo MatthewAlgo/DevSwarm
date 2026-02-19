@@ -1,1 +1,1 @@
-"""Mona Lisa - Deep Researcher Agent"""
+"""Researcher - Deep Researcher Agent"""

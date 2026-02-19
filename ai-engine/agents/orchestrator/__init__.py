@@ -1,1 +1,1 @@
-"""Marco - CEO / Orchestrator Agent"""
+"""Orchestrator - CEO / Orchestrator Agent"""

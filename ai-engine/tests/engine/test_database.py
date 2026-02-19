@@ -44,7 +44,7 @@ class TestGetPool:
 class TestGetAllAgents:
     async def test_returns_list_of_dicts(self, patch_pool):
         patch_pool.fetch.return_value = [
-            {"id": "marco", "name": "Marco", "status": "Idle"},
+            {"id": "orchestrator", "name": "Orchestrator", "status": "Idle"},
         ]
         result = await db.get_all_agents()
         assert isinstance(result, list)
@@ -59,9 +59,9 @@ class TestGetAllAgents:
 @pytest.mark.asyncio
 class TestGetAgent:
     async def test_existing_agent(self, patch_pool):
-        patch_pool.fetchrow.return_value = {"id": "marco", "name": "Marco"}
-        result = await db.get_agent("marco")
-        assert result["id"] == "marco"
+        patch_pool.fetchrow.return_value = {"id": "orchestrator", "name": "Orchestrator"}
+        result = await db.get_agent("orchestrator")
+        assert result["id"] == "orchestrator"
 
     async def test_missing_agent_returns_none(self, patch_pool):
         patch_pool.fetchrow.return_value = None
@@ -72,7 +72,7 @@ class TestGetAgent:
 @pytest.mark.asyncio
 class TestUpdateAgent:
     async def test_builds_correct_params(self, patch_pool):
-        await db.update_agent("marco", status="Working", current_room="War Room")
+        await db.update_agent("orchestrator", status="Working", current_room="War Room")
         call_args = patch_pool.execute.call_args
         query = call_args[0][0]
         # Should have parameterized placeholders
@@ -81,7 +81,7 @@ class TestUpdateAgent:
         assert "current_room" in query.lower()
 
     async def test_no_updates_skips_query(self, patch_pool):
-        await db.update_agent("marco")
+        await db.update_agent("orchestrator")
         # Should not call execute since no fields changed
         patch_pool.execute.assert_not_called()
 
@@ -103,8 +103,8 @@ class TestCreateTask:
         result = await db.create_task(
             title="Test Task",
             description="Description",
-            created_by="marco",
-            assigned_agents=["mona"],
+            created_by="orchestrator",
+            assigned_agents=["researcher"],
         )
         assert result == "42"
 
@@ -112,7 +112,7 @@ class TestCreateTask:
         patch_pool.fetchrow.return_value = {"id": 1}
         await db.create_task(
             title="Test",
-            assigned_agents=["mona", "dan"],
+            assigned_agents=["researcher", "viral_engineer"],
         )
         # fetchrow for INSERT + 2x execute for assignments
         assert patch_pool.execute.call_count == 2
@@ -140,24 +140,24 @@ class TestUpdateTaskStatus:
 class TestCreateMessage:
     async def test_returns_message_id(self, patch_pool):
         patch_pool.fetchrow.return_value = {"id": 99}
-        result = await db.create_message("marco", "mona", "Hello", "chat")
+        result = await db.create_message("orchestrator", "researcher", "Hello", "chat")
         assert result == "99"
 
 
 @pytest.mark.asyncio
 class TestRecordCost:
     async def test_calls_execute(self, patch_pool):
-        await db.record_cost("marco", 1000, 500, 0.005)
+        await db.record_cost("orchestrator", 1000, 500, 0.005)
         patch_pool.execute.assert_called_once()
         args = patch_pool.execute.call_args[0]
-        assert "marco" in args
+        assert "orchestrator" in args
         assert 1000 in args
 
 
 @pytest.mark.asyncio
 class TestLogActivity:
     async def test_serializes_details(self, patch_pool):
-        await db.log_activity("marco", "test_action", {"key": "value"})
+        await db.log_activity("orchestrator", "test_action", {"key": "value"})
         patch_pool.execute.assert_called_once()
         args = patch_pool.execute.call_args[0]
         # Details should be JSON serialized
@@ -172,7 +172,7 @@ class TestGetAllTasks:
             {
                 "id": 1,
                 "title": "Task 1",
-                "assigned_agents": ["marco", "mona"],  # array_agg result
+                "assigned_agents": ["orchestrator", "researcher"],  # array_agg result
                 "created_at": "2023-01-01",
                 "updated_at": "2023-01-01",
             },
@@ -188,7 +188,7 @@ class TestGetAllTasks:
         tasks = await db.get_all_tasks()
 
         assert len(tasks) == 2
-        assert tasks[0]["assigned_agents"] == ["marco", "mona"]
+        assert tasks[0]["assigned_agents"] == ["orchestrator", "researcher"]
         assert tasks[1]["assigned_agents"] == []
 
         # verification: only ONE fetch call should be made
@@ -199,12 +199,12 @@ class TestGetAllTasks:
 class TestDeltaPublishing:
     async def test_update_agent_publishes_delta(self, patch_pool):
         # Mock get_agent to return the "updated" agent
-        agent_data = {"id": "marco", "status": "Busy"}
+        agent_data = {"id": "orchestrator", "status": "Busy"}
         with patch("database.get_agent", AsyncMock(return_value=agent_data)):
             with patch("redis_client.publish_delta", AsyncMock()) as mock_publish:
-                await db.update_agent("marco", status="Busy")
+                await db.update_agent("orchestrator", status="Busy")
                 # Wait for any background tasks if necessary, but here it's direct
-                mock_publish.assert_called_once_with("agents", "marco", agent_data)
+                mock_publish.assert_called_once_with("agents", "orchestrator", agent_data)
 
     async def test_create_task_publishes_delta(self, patch_pool):
         task_data = {"id": "1", "title": "New Task"}

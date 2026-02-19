@@ -1,5 +1,5 @@
 """
-Peter — Frontend Designer Agent
+Frontend Designer — Frontend Designer Agent
 Interacts with multimodal APIs to generate, critique, and refine graphical assets.
 """
 

@@ -1,1 +1,1 @@
-"""Ariani - KB Organizer Agent"""
+"""Archivist - KB Organizer Agent"""

@@ -1,1 +1,1 @@
-"""Jimmy - Content Crawler Agent"""
+"""Crawler - Content Crawler Agent"""

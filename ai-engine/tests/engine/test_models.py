@@ -50,8 +50,8 @@ class TestEnums:
 
 class TestAgentState:
     def test_defaults(self):
-        agent = AgentState(agent_id="marco", name="Marco")
-        assert agent.agent_id == "marco"
+        agent = AgentState(agent_id="orchestrator", name="Orchestrator")
+        assert agent.agent_id == "orchestrator"
         assert agent.current_room == "Desks"
         assert agent.status == "Idle"
         assert agent.current_task == ""
@@ -60,8 +60,8 @@ class TestAgentState:
 
     def test_full_construction(self):
         agent = AgentState(
-            agent_id="bob",
-            name="Bob",
+            agent_id="devops",
+            name="DevOps",
             role="DevOps",
             current_room=RoomEnum.SERVER_ROOM,
             status=AgentStatusEnum.WORKING,
@@ -80,10 +80,10 @@ class TestAgentState:
         assert isinstance(data["status"], str)
 
     def test_json_round_trip(self):
-        agent = AgentState(agent_id="marco", name="Marco", role="CEO")
+        agent = AgentState(agent_id="orchestrator", name="Orchestrator", role="CEO")
         json_str = agent.model_dump_json()
         restored = AgentState.model_validate_json(json_str)
-        assert restored.agent_id == "marco"
+        assert restored.agent_id == "orchestrator"
 
 
 class TestTaskModel:
@@ -101,8 +101,8 @@ class TestTaskModel:
             title="Build API",
             status=TaskStatusEnum.IN_PROGRESS,
             priority=5,
-            created_by="marco",
-            assigned_agents=["jimmy", "mona"],
+            created_by="orchestrator",
+            assigned_agents=["crawler", "researcher"],
             created_at=now,
         )
         assert task.status == "In Progress"
@@ -111,15 +111,15 @@ class TestTaskModel:
 
 class TestMessageModel:
     def test_defaults(self):
-        msg = MessageModel(from_agent="marco", to_agent="mona", content="Hello")
+        msg = MessageModel(from_agent="orchestrator", to_agent="researcher", content="Hello")
         assert msg.message_type == "chat"
         assert msg.id is None
 
     def test_full_construction(self):
         msg = MessageModel(
             id="msg-1",
-            from_agent="bob",
-            to_agent="marco",
+            from_agent="devops",
+            to_agent="orchestrator",
             content="System recovered",
             message_type="status_report",
         )
@@ -158,14 +158,14 @@ class TestTriggerTaskRequest:
         req = TriggerTaskRequest(
             goal="Deploy v2",
             priority=5,
-            assigned_to=["marco", "bob"],
+            assigned_to=["orchestrator", "devops"],
         )
         assert len(req.assigned_to) == 2
 
 
 class TestAgentCostRecord:
     def test_defaults(self):
-        cost = AgentCostRecord(agent_id="marco")
+        cost = AgentCostRecord(agent_id="orchestrator")
         assert cost.input_tokens == 0
         assert cost.output_tokens == 0
         assert cost.cost_usd == 0.0
@@ -173,7 +173,7 @@ class TestAgentCostRecord:
 
     def test_full(self):
         cost = AgentCostRecord(
-            agent_id="mona",
+            agent_id="researcher",
             input_tokens=1000,
             output_tokens=500,
             cost_usd=0.005,

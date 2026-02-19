@@ -16,7 +16,16 @@ class TestAgentMCPServers:
     """Verify all 8 agent MCP servers are registered."""
 
     def test_all_agents_registered(self):
-        expected = {"marco", "jimmy", "mona", "dan", "tonny", "bob", "ariani", "peter"}
+        expected = {
+            "orchestrator",
+            "crawler",
+            "researcher",
+            "viral_engineer",
+            "comms",
+            "devops",
+            "archivist",
+            "frontend_designer",
+        }
         assert set(AGENT_MCP_SERVERS.keys()) == expected
 
     def test_server_count(self):
@@ -29,7 +38,7 @@ class TestAgentMCPServers:
 
 class TestGetMCPServer:
     def test_valid_agent(self):
-        server = get_mcp_server("marco")
+        server = get_mcp_server("orchestrator")
         assert server is not None
 
     def test_invalid_agent(self):
@@ -37,7 +46,17 @@ class TestGetMCPServer:
         assert server is None
 
     @pytest.mark.parametrize(
-        "agent_id", ["marco", "jimmy", "mona", "dan", "tonny", "bob", "ariani", "peter"]
+        "agent_id",
+        [
+            "orchestrator",
+            "crawler",
+            "researcher",
+            "viral_engineer",
+            "comms",
+            "devops",
+            "archivist",
+            "frontend_designer",
+        ],
     )
     def test_all_agents_retrievable(self, agent_id):
         assert get_mcp_server(agent_id) is not None
@@ -63,8 +82,8 @@ class TestCallAgent:
     async def test_valid_agent(self):
         from mcp_server import call_agent
 
-        result = await call_agent("marco", "create_task", '{"title": "Test"}')
-        assert "marco" in result
+        result = await call_agent("orchestrator", "create_task", '{"title": "Test"}')
+        assert "orchestrator" in result
         assert "create_task" in result
 
     async def test_invalid_agent(self):
@@ -77,15 +96,15 @@ class TestCallAgent:
     async def test_invalid_json_params(self):
         from mcp_server import call_agent
 
-        result = await call_agent("marco", "create_task", "{invalid_json}")
+        result = await call_agent("orchestrator", "create_task", "{invalid_json}")
         assert "Error" in result
         assert "Invalid JSON" in result
 
     async def test_empty_params(self):
         from mcp_server import call_agent
 
-        result = await call_agent("marco", "assign_agent")
-        assert "marco" in result
+        result = await call_agent("orchestrator", "assign_agent")
+        assert "orchestrator" in result
 
 
 @pytest.mark.asyncio

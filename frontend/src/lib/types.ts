@@ -87,9 +87,9 @@ export interface WSPayload {
 // ── Normalisers (snake_case API → camelCase client) ──
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export function normalizeAgent(raw: any): Agent {
+export function normalizeAgent(raw: any, fallbackId?: string): Agent {
   return {
-    id: raw.id ?? "",
+    id: raw.id ?? fallbackId ?? "",
     name: raw.name ?? "",
     role: raw.role ?? "",
     room: raw.room ?? raw.current_room ?? "Desks",

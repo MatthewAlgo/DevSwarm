@@ -73,8 +73,8 @@ async def test_orchestration_flows(
     mock_context, goal, target_agent, mock_output, default_room
 ):
     """
-    Parametrized System Test: Verifies flow from Marco -> Target Agent.
-    - Mocks LLM responses for Marco and the target agent.
+    Parametrized System Test: Verifies flow from Orchestrator -> Target Agent.
+    - Mocks LLM responses for Orchestrator and the target agent.
     - Verifies proper delegation.
     - Verifies target agent's execution and state update.
     - Verifies target agent returns to their specific default room after work.
@@ -89,8 +89,8 @@ async def test_orchestration_flows(
 
     # 2. Setup Mock LLMs
 
-    # Marco's Mock Response (Dynamic based on target)
-    marco_response = OrchestratorRoutingOutput(
+    # Orchestrator's Mock Response (Dynamic based on target)
+    orchestrator_response = OrchestratorRoutingOutput(
         analysis=f"Delegating to {target_agent}",
         subtasks=[SubtaskAssignment(agent=target_agent, task=goal, priority=5)],
         meeting_required=False,
@@ -98,7 +98,7 @@ async def test_orchestration_flows(
     )
 
     test_registry["orchestrator"]._llm = RunnableLambda(
-        lambda x: AIMessage(content=marco_response.model_dump_json())
+        lambda x: AIMessage(content=orchestrator_response.model_dump_json())
     )
 
     # Target Agent's Mock Response
@@ -124,7 +124,7 @@ async def test_orchestration_flows(
 
         # 6. Assertions
 
-        # Verify Marco delegation
+        # Verify Orchestrator delegation
         assert result["delegated_agents"] == [target_agent]
 
         # Verify Target Agent Execution (via logs)

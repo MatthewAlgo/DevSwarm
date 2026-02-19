@@ -4,6 +4,7 @@ Tests crawl output processing, message routing, and state mutations.
 """
 
 import pytest
+from unittest.mock import AsyncMock
 
 from agents.crawler.agent import CrawlerAgent
 from core.schemas import CrawlerCrawlOutput, CrawlFinding
@@ -104,3 +105,35 @@ class TestCrawlerAgent:
             m for m in mock_context.messages if m["to_agent"] == "archivist"
         ]
         assert len(archivist_msgs) == n_findings
+
+    async def test_connectivity_goal_replaces_findings_with_verified_result(
+        self, mock_context, base_state, crawler_output
+    ):
+        """Connectivity tasks should publish a deterministic UTC verification finding."""
+        base_state["current_goal"] = (
+            "Execute a basic connectivity test by searching for the current UTC "
+            "time and date to verify external network access."
+        )
+
+        verified_finding = CrawlFinding(
+            topic="UTC Connectivity Verification",
+            summary="External reachability confirmed via worldtimeapi.",
+            sources=["https://worldtimeapi.org/api/timezone/Etc/UTC"],
+            relevance_score=10,
+            tags=["connectivity", "utc", "network"],
+        )
+
+        agent = CrawlerAgent(context=mock_context)
+        agent._chain = make_mock_chain(crawler_output)
+        agent._build_connectivity_finding = AsyncMock(return_value=verified_finding)
+
+        result = await agent.process(base_state)
+
+        assert len(result["crawl_results"]) == 1
+        assert result["crawl_results"][0]["topic"] == "UTC Connectivity Verification"
+
+        archivist_msgs = [
+            m for m in mock_context.messages if m["to_agent"] == "archivist"
+        ]
+        assert len(archivist_msgs) == 1
+        assert "UTC Connectivity Verification" in archivist_msgs[0]["content"]

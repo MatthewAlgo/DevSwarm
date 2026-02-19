@@ -72,7 +72,7 @@ def route_from_orchestrator(state: OfficeState) -> str:
     """Determine which agent to route to after Orchestrator's evaluation."""
     delegated = state.get("delegated_agents", [])
     if not delegated:
-        return NodeName.CRAWLER
+        return END
 
     agent_map = {
         "crawler": NodeName.CRAWLER,
@@ -83,7 +83,7 @@ def route_from_orchestrator(state: OfficeState) -> str:
         "archivist": NodeName.ARCHIVIST,
         "frontend_designer": NodeName.FRONTEND_DESIGNER,
     }
-    return agent_map.get(delegated[0], NodeName.CRAWLER)
+    return agent_map.get(delegated[0], END)
 
 
 def route_after_research(state: OfficeState) -> str:
@@ -130,6 +130,7 @@ def build_workflow() -> StateGraph:
         NodeName.ORCHESTRATOR,
         route_from_orchestrator,
         {
+            END: END,
             NodeName.CRAWLER: NodeName.CRAWLER,
             NodeName.RESEARCHER: NodeName.RESEARCHER,
             NodeName.VIRAL_ENGINEER: NodeName.VIRAL_ENGINEER,

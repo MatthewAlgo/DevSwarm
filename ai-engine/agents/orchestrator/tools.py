@@ -1,11 +1,11 @@
 """
-Marco - MCP Tools
+Orchestrator - MCP Tools
 Orchestration tools for task management and agent coordination.
 """
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("Marco_Orchestration")
+mcp = FastMCP("Orchestrator_Orchestration")
 
 
 @mcp.tool()
@@ -20,7 +20,7 @@ async def create_task(
         description=description,
         status="Backlog",
         priority=priority,
-        created_by="marco",
+        created_by="orchestrator",
         assigned_agents=[assigned_to],
     )
     return f"Task created (ID: {task_id}): {title} → assigned to {assigned_to}"
@@ -33,7 +33,7 @@ async def assign_agent(agent_id: str, task_description: str) -> str:
 
     await update_agent(agent_id, status="Working", current_task=task_description)
     await create_message(
-        from_agent="marco",
+        from_agent="orchestrator",
         to_agent=agent_id,
         content=f"New assignment: {task_description}",
         message_type="delegation",
@@ -48,5 +48,5 @@ async def schedule_meeting(agent_ids: list[str], topic: str) -> str:
 
     for aid in agent_ids:
         await update_agent(aid, current_room="War Room", status="Meeting")
-    await update_agent("marco", current_room="War Room", status="Meeting")
+    await update_agent("orchestrator", current_room="War Room", status="Meeting")
     return f"Meeting scheduled in War Room for {agent_ids} regarding: {topic}"

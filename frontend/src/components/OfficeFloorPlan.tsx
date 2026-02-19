@@ -121,9 +121,7 @@ export default function OfficeFloorPlan() {
                                             key={agent.id}
                                             agent={agent}
                                             selected={selectedId === agent.id}
-                                            onClick={() =>
-                                                select(selectedId === agent.id ? null : agent.id)
-                                            }
+                                            onClick={() => select(agent.id)}
                                             size={room === "Desks" ? "md" : "sm"}
                                         />
                                     ))}

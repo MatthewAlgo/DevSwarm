@@ -1,5 +1,5 @@
 """
-Bob — DevOps Monitor Agent
+DevOps — DevOps Monitor Agent
 The swarm's immune system. Monitors health, intercepts errors, and initiates recovery.
 """
 

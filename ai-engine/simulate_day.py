@@ -17,6 +17,9 @@ logging.basicConfig(
 logger = logging.getLogger("devswarm.simulate_day")
 
 API_ENDPOINT = os.getenv("AI_ENGINE_URL", "http://localhost:8000")
+AUTH_HEADERS = {
+    "Authorization": os.getenv("API_AUTH_TOKEN", "Bearer devswarm-secret-key")
+}
 
 
 async def mutate_global_state(status: str, room: str, message: str = "") -> None:
@@ -29,7 +32,7 @@ async def mutate_global_state(status: str, room: str, message: str = "") -> None
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
-                f"{API_ENDPOINT}/api/state/override", json=payload
+                f"{API_ENDPOINT}/api/state/override", json=payload, headers=AUTH_HEADERS
             )
             if response.status_code == 200:
                 logger.info(f"Successfully broadcasted global state: {status}")
@@ -44,7 +47,9 @@ async def trigger_agent_task(agent_id: str, task: str) -> None:
     payload = {"goal": task, "assigned_to": [agent_id]}
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(f"{API_ENDPOINT}/api/trigger", json=payload)
+            response = await client.post(
+                f"{API_ENDPOINT}/api/trigger", json=payload, headers=AUTH_HEADERS
+            )
             if response.status_code == 200:
                 logger.info(f"Triggered {agent_id}: {task}")
         except Exception as e:
@@ -120,7 +125,7 @@ async def temporal_loop() -> None:
             await simulate_agent_activity()
             last_activity_hour = current_hour
 
-        # Jimmy's 15-minute autonomous crawl cycle
+        # Crawler's 15-minute autonomous crawl cycle
         elif clocked_in and current_minute % 15 == 0:
             await trigger_agent_task("crawler", "Scheduled 15-minute content crawl")
 

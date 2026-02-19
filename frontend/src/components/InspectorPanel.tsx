@@ -7,8 +7,12 @@ import type { AgentStatus } from "@/lib/types";
 import { ROOM_ICON, STATUS_THEME } from "@/lib/types";
 
 export default function InspectorPanel() {
-    const { agent: getAgent, select, tasksByAgent, messages } = useStore();
-    const agent = getAgent();
+    const select = useStore((s) => s.select);
+    const tasksByAgent = useStore((s) => s.tasksByAgent);
+    const messages = useStore((s) => s.messages);
+    const agent = useStore((s) =>
+        s.selectedId ? s.agents[s.selectedId] ?? null : null,
+    );
 
     if (!agent) {
         return (

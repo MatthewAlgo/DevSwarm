@@ -1,8 +1,8 @@
-"""Ariani - MCP Tools for knowledge base management."""
+"""Archivist - MCP Tools for knowledge base management."""
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("Ariani_KBOrganizer")
+mcp = FastMCP("Archivist_KBOrganizer")
 
 
 @mcp.tool()

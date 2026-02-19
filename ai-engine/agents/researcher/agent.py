@@ -1,6 +1,6 @@
 """
-Mona Lisa — Deep Researcher Agent
-Activated by Marco. Synthesizes exhaustive academic and competitive analysis reports.
+Researcher — Deep Researcher Agent
+Activated by Orchestrator. Synthesizes exhaustive academic and competitive analysis reports.
 """
 
 from __future__ import annotations

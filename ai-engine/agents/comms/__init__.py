@@ -1,1 +1,1 @@
-"""Tonny - Comms Interface Agent"""
+"""Comms - Comms Interface Agent"""

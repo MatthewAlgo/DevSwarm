@@ -4,9 +4,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useStore } from "@/lib/store";
 import {
-  MARCO,
-  MONA,
-  BOB,
+  ORCHESTRATOR,
+  RESEARCHER,
+  DEVOPS,
   ALL_AGENTS,
   ALL_TASKS,
   ALL_MESSAGES,
@@ -15,7 +15,7 @@ import {
   TASK_DONE,
   WS_STATE_UPDATE,
   WS_INVALID_TYPE,
-  COST_MARCO,
+  COST_ORCHESTRATOR,
   ACTIVITY_ENTRY,
 } from "../helpers/fixtures";
 
@@ -79,6 +79,28 @@ describe("setters", () => {
     expect(Object.keys(useStore.getState().agents)).toHaveLength(4);
   });
 
+  it("setAgents filters hidden user agent", () => {
+    useStore.getState().setAgents({
+      ...ALL_AGENTS,
+      user: {
+        ...ORCHESTRATOR,
+        id: "user",
+        name: "User",
+      },
+    });
+    expect(useStore.getState().agents.user).toBeUndefined();
+  });
+
+  it("setAgents aligns agent.id with map key", () => {
+    useStore.getState().setAgents({
+      researcher: {
+        ...RESEARCHER,
+        id: "wrong-id",
+      },
+    });
+    expect(useStore.getState().agents.researcher.id).toBe("researcher");
+  });
+
   it("setTasks", () => {
     useStore.getState().setTasks(ALL_TASKS);
     expect(useStore.getState().tasks).toHaveLength(3);
@@ -90,8 +112,8 @@ describe("setters", () => {
   });
 
   it("select / deselect", () => {
-    useStore.getState().select("marco");
-    expect(useStore.getState().selectedId).toBe("marco");
+    useStore.getState().select("orchestrator");
+    expect(useStore.getState().selectedId).toBe("orchestrator");
     useStore.getState().select(null);
     expect(useStore.getState().selectedId).toBeNull();
   });
@@ -109,7 +131,7 @@ describe("setters", () => {
   });
 
   it("setCosts", () => {
-    useStore.getState().setCosts([COST_MARCO]);
+    useStore.getState().setCosts([COST_ORCHESTRATOR]);
     expect(useStore.getState().costs).toHaveLength(1);
   });
 
@@ -128,8 +150,8 @@ describe("applyWSPayload", () => {
     useStore.getState().applyWSPayload(WS_STATE_UPDATE);
     const s = useStore.getState();
     expect(Object.keys(s.agents)).toHaveLength(2);
-    expect(s.agents.marco.status).toBe("Working");
-    expect(s.agents.mona.room).toBe("War Room");
+    expect(s.agents.orchestrator.status).toBe("Working");
+    expect(s.agents.researcher.room).toBe("War Room");
     expect(s.messages).toHaveLength(1);
     expect(s.version).toBe(42);
   });
@@ -140,20 +162,53 @@ describe("applyWSPayload", () => {
   });
 
   it("merges agents (does not replace)", () => {
-    // Pre-populate with BOB
-    useStore.getState().setAgents({ bob: BOB });
-    // Apply update that only has marco + mona
+    // Pre-populate with DEVOPS
+    useStore.getState().setAgents({ devops: DEVOPS });
+    // Apply update that only has orchestrator + researcher
     useStore.getState().applyWSPayload(WS_STATE_UPDATE);
     const agents = useStore.getState().agents;
-    expect(Object.keys(agents)).toHaveLength(3); // bob + marco + mona
-    expect(agents.bob.name).toBe("Bob");
+    expect(Object.keys(agents)).toHaveLength(3); // devops + orchestrator + researcher
+    expect(agents.devops.name).toBe("DevOps");
+  });
+
+  it("filters hidden user agent from state updates", () => {
+    useStore.getState().applyWSPayload({
+      type: "STATE_UPDATE",
+      agents: {
+        user: {
+          id: "user",
+          name: "User",
+          role: "Human Administrator",
+          room: "Private Office",
+          status: "Idle",
+        },
+      },
+      version: 1,
+    });
+    expect(useStore.getState().agents.user).toBeUndefined();
   });
 
   it("normalises snake_case fields from WS", () => {
     useStore.getState().applyWSPayload(WS_STATE_UPDATE);
-    const marco = useStore.getState().agents.marco;
-    expect(marco.currentTask).toBe("Sprint planning");
-    expect(marco.avatarColor).toBe("#8b5cf6");
+    const orchestrator = useStore.getState().agents.orchestrator;
+    expect(orchestrator.currentTask).toBe("Sprint planning");
+    expect(orchestrator.avatarColor).toBe("#8b5cf6");
+  });
+
+  it("uses WS map key as fallback ID when data omits id", () => {
+    useStore.getState().applyWSPayload({
+      type: "STATE_UPDATE",
+      agents: {
+        researcher: {
+          name: "Researcher",
+          role: "Researcher",
+          room: "War Room",
+          status: "Idle",
+        },
+      },
+      version: 2,
+    });
+    expect(useStore.getState().agents.researcher.id).toBe("researcher");
   });
 
   it("keeps existing messages if payload has none", () => {
@@ -184,13 +239,13 @@ describe("selectors", () => {
     useStore.setState({
       agents: ALL_AGENTS,
       tasks: ALL_TASKS,
-      selectedId: "marco",
+      selectedId: "orchestrator",
     });
   });
 
   describe("agent()", () => {
     it("returns selected agent", () => {
-      expect(useStore.getState().agent()?.name).toBe("Marco");
+      expect(useStore.getState().agent()?.name).toBe("Orchestrator");
     });
 
     it("returns null when no selection", () => {
@@ -208,7 +263,7 @@ describe("selectors", () => {
     it("returns agents in given room", () => {
       const warRoom = useStore.getState().byRoom("War Room");
       expect(warRoom).toHaveLength(1);
-      expect(warRoom[0].id).toBe("mona");
+      expect(warRoom[0].id).toBe("researcher");
     });
 
     it("returns empty array for empty room", () => {
@@ -218,13 +273,13 @@ describe("selectors", () => {
 
   describe("tasksByAgent()", () => {
     it("finds tasks assigned to agent", () => {
-      const tasks = useStore.getState().tasksByAgent("mona");
+      const tasks = useStore.getState().tasksByAgent("researcher");
       expect(tasks).toHaveLength(1);
       expect(tasks[0].title).toBe("Research AI frameworks");
     });
 
     it("finds tasks created by agent", () => {
-      const tasks = useStore.getState().tasksByAgent("marco");
+      const tasks = useStore.getState().tasksByAgent("orchestrator");
       expect(tasks).toHaveLength(2); // created task-1 + task-3
     });
 

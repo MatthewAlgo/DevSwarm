@@ -22,8 +22,11 @@ from models import (
     MessageModel,
 )
 from core.state import create_initial_state, OfficeState
-from graph import graph
+from graph import graph, registry as agent_registry
 from mcp_server import list_all_tools
+from services.agent_dispatcher import AgentTaskDispatcher
+from services.graph_execution import GraphExecutionService
+from services.task_queue_worker import TaskQueueWorker
 
 load_dotenv()
 
@@ -33,6 +36,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger("devswarm.main")
 
+_dispatcher: AgentTaskDispatcher | None = None
+_graph_service: GraphExecutionService | None = None
+_queue_worker: TaskQueueWorker | None = None
+
 
 # --- Lifespan ---
 
@@ -40,11 +47,21 @@ logger = logging.getLogger("devswarm.main")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown."""
+    global _dispatcher, _graph_service, _queue_worker
+
     logger.info("=== DevSwarm AI Engine Starting ===")
     await db.get_pool()
     logger.info("Database pool initialized")
 
+    _dispatcher = AgentTaskDispatcher(db=db, agent_registry=agent_registry)
+    _graph_service = GraphExecutionService(
+        graph=graph,
+        dispatcher=_dispatcher,
+        db=db,
+    )
+
     # Initialize Redis
+    worker_task = None
     try:
         import redis_client
 
@@ -52,21 +69,32 @@ async def lifespan(app: FastAPI):
         await redis_client.ensure_consumer_group()
         logger.info("Redis initialized with consumer group")
 
-        # Start background task queue worker
+        _queue_worker = TaskQueueWorker(
+            redis_queue=redis_client,
+            graph_runner=_graph_service,
+            db=db,
+        )
         worker_task = asyncio.create_task(_task_queue_worker())
     except Exception as e:
         logger.warning(f"Redis initialization failed (non-fatal): {e}")
-        worker_task = None
+
+    dispatcher_task = asyncio.create_task(_dispatcher.run_forever())
 
     yield
 
     # Shutdown
-    if worker_task:
-        worker_task.cancel()
+    for task in (worker_task, dispatcher_task):
+        if not task:
+            continue
+        task.cancel()
         try:
-            await worker_task
+            await task
         except asyncio.CancelledError:
             pass
+
+    _queue_worker = None
+    _graph_service = None
+    _dispatcher = None
 
     try:
         import redis_client
@@ -80,41 +108,10 @@ async def lifespan(app: FastAPI):
 
 
 async def _task_queue_worker():
-    """Background worker that consumes tasks from the Redis Stream."""
-    import redis_client
-
-    logger.info("[Worker] Task queue worker started")
-
-    while True:
-        try:
-            tasks = await redis_client.dequeue_tasks(count=1, block_ms=5000)
-            for task in tasks:
-                logger.info(f"[Worker] Processing task: {task['goal'][:60]}")
-                try:
-                    initial_state = create_initial_state(task["goal"])
-                    await _run_graph(initial_state, task["goal"])
-                    await redis_client.ack_task(task["id"])
-                    logger.info(f"[Worker] Task completed: {task['id']}")
-                except Exception as e:
-                    logger.error(f"[Worker] Task failed: {task['id']} — {e}")
-                    await redis_client.ack_task(
-                        task["id"]
-                    )  # Ack to prevent redelivery loop
-                    await db.log_activity(
-                        "system",
-                        "task_queue_error",
-                        {
-                            "task_id": task["id"],
-                            "goal": task["goal"],
-                            "error": str(e),
-                        },
-                    )
-        except asyncio.CancelledError:
-            logger.info("[Worker] Task queue worker shutting down")
-            return
-        except Exception as e:
-            logger.error(f"[Worker] Stream read error: {e}")
-            await asyncio.sleep(2)  # Back off on errors
+    """Proxy entrypoint for the Redis queue worker service."""
+    if _queue_worker is None:
+        return
+    await _queue_worker.run()
 
 
 # Strong references to background tasks to prevent GC from dropping them
@@ -153,7 +150,7 @@ async def auth_middleware(request, call_next):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8080", "*"],
+    allow_origins=["http://localhost:3000", "http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -336,29 +333,15 @@ async def trigger_task(req: TriggerTaskRequest):
 
 
 async def _run_graph(initial_state: OfficeState, goal: str) -> None:
-    """Execute the LangGraph workflow in the background."""
-    try:
-        logger.info(f"Starting graph execution for goal: {goal}")
-        result = await graph.ainvoke(initial_state)
-        logger.info(f"Graph execution complete for goal: {goal}")
-        await db.log_activity(
-            "system",
-            "graph_complete",
-            {
-                "goal": goal,
-                "delegated": result.get("delegated_agents", []),
-            },
-        )
-    except Exception as e:
-        logger.error(f"Graph execution error: {e}")
-        await db.log_activity(
-            "system",
-            "graph_error",
-            {
-                "goal": goal,
-                "error": str(e),
-            },
-        )
+    """Proxy entrypoint for graph execution service (kept for test compatibility)."""
+    if _graph_service is not None:
+        await _graph_service.run(initial_state, goal)
+        return
+
+    # Safety fallback (e.g., invoked outside lifespan in tests/scripts).
+    dispatcher = AgentTaskDispatcher(db=db, agent_registry=agent_registry)
+    service = GraphExecutionService(graph=graph, dispatcher=dispatcher, db=db)
+    await service.run(initial_state, goal)
 
 
 # --- Cost Endpoints ---

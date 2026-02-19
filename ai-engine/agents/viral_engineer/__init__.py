@@ -1,1 +1,1 @@
-"""Dan - Viral Engineer Agent"""
+"""Viral Engineer - Viral Engineer Agent"""

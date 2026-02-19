@@ -81,7 +81,7 @@ export default function AgentsPage() {
                             return (
                                 <motion.button
                                     key={agent.id}
-                                    onClick={() => select(isSelected ? null : agent.id)}
+                                    onClick={() => select(agent.id)}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: i * 0.04 }}
@@ -144,7 +144,7 @@ export default function AgentsPage() {
             {/* ── Inspector sidebar ── */}
             {selectedId && (
                 <aside className="hidden lg:block w-80 xl:w-[22rem] border-l border-neutral-800/50 overflow-y-auto">
-                    <InspectorPanel />
+                    <InspectorPanel key={selectedId} />
                 </aside>
             )}
         </div>

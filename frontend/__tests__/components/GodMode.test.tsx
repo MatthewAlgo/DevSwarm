@@ -74,8 +74,8 @@ describe("GodMode", () => {
 
     it("shows agent list with statuses", () => {
         render(<GodMode />);
-        expect(screen.getByText("Marco")).toBeInTheDocument();
-        expect(screen.getByText("Bob")).toBeInTheDocument();
+        expect(screen.getByText("Orchestrator")).toBeInTheDocument();
+        expect(screen.getByText("DevOps")).toBeInTheDocument();
     });
 
     it("shows quick action buttons", () => {
