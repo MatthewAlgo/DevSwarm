@@ -8,13 +8,12 @@ from urllib.parse import urlparse, urlunparse
 
 import pytest
 import pytest_asyncio
+import redis_client
 
 # Force a dedicated Redis DB for tests even when REDIS_URL is already set.
 base_redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 parsed_redis_url = urlparse(base_redis_url)
 os.environ["REDIS_URL"] = urlunparse(parsed_redis_url._replace(path="/1"))
-
-import redis_client
 
 
 @pytest_asyncio.fixture
