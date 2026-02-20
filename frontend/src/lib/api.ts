@@ -5,13 +5,12 @@
 function resolveApiBaseCandidates(): string[] {
   const candidates: string[] = [];
 
-  // Prefer same-origin API first so Next.js rewrites can handle routing
-  // without cross-origin CORS preflight/response constraints.
-  candidates.push("/api");
-
   if (process.env.NEXT_PUBLIC_API_URL) {
     candidates.push(process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, ""));
   }
+
+  // Same-origin rewrite fallback (useful when frontend and gateway are colocated).
+  candidates.push("/api");
 
   if (typeof window !== "undefined") {
     const origin = window.location.origin;
