@@ -9,6 +9,43 @@ from services.agent_dispatcher import AgentTaskDispatcher
 from services.graph_execution import GraphExecutionService
 
 
+def test_devops_completion_message_keeps_full_diagnosis_text():
+    dispatcher = AgentTaskDispatcher(db=SimpleNamespace(), agent_registry={})
+    long_diagnosis = (
+        "All systems operational. DevSwarm agents are reporting normal heartbeat signals. "
+        "No anomalies detected in the current execution context. The initial ping confirms "
+        "that the monitoring and orchestration loop is stable across all active services."
+    )
+
+    message = dispatcher._build_user_completion_message(
+        "devops",
+        "Comprehensive health check",
+        {
+            "health_report": {
+                "system_status": "healthy",
+                "diagnosis": long_diagnosis,
+                "agents_recovered": 0,
+            }
+        },
+    )
+
+    assert f"Diagnosis: {long_diagnosis}" in message
+
+
+def test_failure_message_keeps_full_error_text():
+    dispatcher = AgentTaskDispatcher(db=SimpleNamespace(), agent_registry={})
+    long_error = (
+        "Connection timeout while reaching the orchestration endpoint after repeated retries. "
+        "Trace captured for transport, DNS resolution, and TLS handshake diagnostics."
+    )
+
+    message = dispatcher._build_user_failure_message(
+        "devops", "Comprehensive health check", long_error
+    )
+
+    assert f"Error: {long_error}" in message
+
+
 @pytest.mark.asyncio
 async def test_run_agent_queue_executes_pending_tasks():
     db = SimpleNamespace(
