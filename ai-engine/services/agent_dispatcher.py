@@ -82,11 +82,8 @@ class AgentTaskDispatcher:
         return agent_id.replace("_", " ").title()
 
     @staticmethod
-    def _truncate(text: str, max_chars: int = 180) -> str:
-        clean = " ".join((text or "").split())
-        if len(clean) <= max_chars:
-            return clean
-        return clean[: max_chars - 3].rstrip() + "..."
+    def _clean_message_text(text: str) -> str:
+        return " ".join((text or "").split())
 
     def _build_user_completion_message(
         self, agent_id: str, task_title: str, result: dict
@@ -97,7 +94,9 @@ class AgentTaskDispatcher:
         if agent_id == "devops":
             health = result.get("health_report") or {}
             status = str(health.get("system_status") or "unknown")
-            diagnosis = self._truncate(str(health.get("diagnosis") or "No diagnosis"))
+            diagnosis = self._clean_message_text(
+                str(health.get("diagnosis") or "No diagnosis")
+            )
             recovered = int(health.get("agents_recovered") or 0)
             return (
                 f"Status update: DevOps completed '{task_label}'. "
@@ -110,11 +109,13 @@ class AgentTaskDispatcher:
             count = len(crawl_results)
             top_topic = ""
             if count > 0 and isinstance(crawl_results[0], dict):
-                top_topic = str(crawl_results[0].get("topic") or "")
+                top_topic = self._clean_message_text(
+                    str(crawl_results[0].get("topic") or "")
+                )
             if top_topic:
                 return (
                     f"Status update: Crawler completed '{task_label}' with {count} findings. "
-                    f"Top finding: {self._truncate(top_topic, 80)}."
+                    f"Top finding: {top_topic}."
                 )
             return (
                 f"Status update: Crawler completed '{task_label}' with {count} findings."
@@ -122,7 +123,7 @@ class AgentTaskDispatcher:
 
         if agent_id == "researcher":
             findings = result.get("research_findings") or {}
-            title = self._truncate(str(findings.get("title") or ""), 100)
+            title = self._clean_message_text(str(findings.get("title") or ""))
             if title:
                 return (
                     f"Status update: Researcher completed '{task_label}'. "
@@ -159,7 +160,7 @@ class AgentTaskDispatcher:
         agent_name = self._display_agent_name(agent_id)
         return (
             f"Status update: {agent_name} could not complete '{task_label}'. "
-            f"Error: {self._truncate(error, 220)}"
+            f"Error: {self._clean_message_text(error)}"
         )
 
     async def _notify_task_success(
