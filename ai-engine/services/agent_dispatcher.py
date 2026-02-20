@@ -32,7 +32,14 @@ class DatabasePort(Protocol):
     async def get_agent(self, agent_id: str) -> dict | None: ...
     async def get_all_agents(self) -> list[dict]: ...
     async def get_tasks_by_agent(self, agent_id: str) -> list[dict]: ...
-    async def update_agent(self, agent_id: str, **kwargs: Any) -> None: ...
+    async def update_agent(
+        self,
+        agent_id: str,
+        current_room: str | None = None,
+        status: str | None = None,
+        current_task: str | None = None,
+        thought_chain: str | None = None,
+    ) -> None: ...
     async def update_task_status(self, task_id: str, status: str) -> None: ...
     async def create_message(
         self,
@@ -349,12 +356,15 @@ class AgentTaskDispatcher:
 
         async with self._dispatch_lock:
             agents = await self._db.get_all_agents()
-            idle_ids = [
-                a["id"]
-                for a in agents
-                if a.get("status") == AgentStatusEnum.IDLE.value
-                and a.get("id") in self._registry
-            ]
+            idle_ids: list[str] = []
+            for agent in agents:
+                agent_id = agent.get("id")
+                if (
+                    agent.get("status") == AgentStatusEnum.IDLE.value
+                    and isinstance(agent_id, str)
+                    and agent_id in self._registry
+                ):
+                    idle_ids.append(agent_id)
             if not idle_ids:
                 return
 

@@ -9,7 +9,7 @@ import asyncio
 import logging
 from typing import Any, Protocol
 
-from core.state import create_initial_state
+from core.state import OfficeState, create_initial_state
 
 logger = logging.getLogger("devswarm.services.task_queue")
 
@@ -20,7 +20,7 @@ class RedisQueuePort(Protocol):
 
 
 class GraphRunnerPort(Protocol):
-    async def run(self, initial_state: dict, goal: str) -> None: ...
+    async def run(self, initial_state: OfficeState, goal: str) -> None: ...
 
 
 class DatabasePort(Protocol):
@@ -73,4 +73,3 @@ class TaskQueueWorker:
             except Exception as exc:
                 logger.error("[Worker] Stream read error: %s", exc)
                 await asyncio.sleep(2)
-
