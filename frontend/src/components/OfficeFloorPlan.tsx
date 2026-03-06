@@ -140,7 +140,7 @@ export default function OfficeFloorPlan() {
                                     {occupants.length === 0 && (
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                             <span className="text-neutral-800 text-[10px] font-medium uppercase tracking-widest opacity-40">
-                                                Unoccupied
+                                                Empty
                                             </span>
                                         </div>
                                     )}
@@ -193,6 +193,7 @@ function FloorAgentCard({
         <motion.button
             layoutId={`agent-card-${agent.id}`}
             onClick={onClick}
+            aria-label={`Inspect ${agent.name}`}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{
                 opacity: 1,

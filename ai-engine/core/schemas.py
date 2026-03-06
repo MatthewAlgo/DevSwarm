@@ -14,6 +14,7 @@ class BaseAgentOutput(BaseModel):
     """Common output fields for all DevSwarm agents."""
 
     thought_process: str = Field(
+        default="Thinking...",
         description="Internal monologue or reasoning for the agent's actions"
     )
     target_room: Optional[RoomEnum] = Field(

@@ -91,7 +91,8 @@ async def get_task(task_id: str) -> Optional[dict]:
         return None
     task = dict(row)
     task["id"] = str(task["id"])
-    task["assigned_agents"] = task["assigned_agents"] if task["assigned_agents"] else []
+    agents = task.get("assigned_agents")
+    task["assigned_agents"] = list(agents) if agents else []
     return task
 
 

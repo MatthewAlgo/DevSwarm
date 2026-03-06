@@ -165,13 +165,19 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
             # Otherwise, stay in the current room.
             target_room = getattr(parsed, "target_room", None)
             
-            # Ensure current_room_val is a RoomEnum for the update_agent call
+            # Ensure current_room_val is a RoomEnum
             if isinstance(current_room_val, str):
                 current_room_enum = RoomEnum(current_room_val)
+            elif current_room_val is None:
+                current_room_enum = RoomEnum(self.default_room) if self.default_room else RoomEnum.DESKS
             else:
                 current_room_enum = current_room_val
 
-            final_room = target_room or current_room_enum
+            final_room = target_room if target_room else current_room_enum
+            
+            # Final safety check
+            if final_room is None:
+                final_room = RoomEnum.DESKS
             
             thought_process = getattr(parsed, "thought_process", f"Task complete. {self.role} work finished successfully.")
 
@@ -224,7 +230,7 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
         ]
         
         chain_input = {
-            k: (", ".join(state.get(k, [])) if isinstance(state.get(k), list) else str(state.get(k, "")) or "None")
+            k: (", ".join(str(item) for item in state.get(k, [])) if isinstance(state.get(k), list) else str(state.get(k, "")) or "None")
             for k in keys_to_extract
         }
         

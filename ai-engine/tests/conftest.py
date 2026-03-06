@@ -148,7 +148,8 @@ def make_mock_chain(output):
 @pytest.fixture
 def orchestrator_output():
     return OrchestratorRoutingOutput(
-        analysis="Goal requires research and content creation",
+        thought_process="Goal requires research and content creation",
+        analysis="Decomposing user goal into research and viral content tasks.",
         subtasks=[
             SubtaskAssignment(
                 agent="researcher", task="Deep research on AI agents", priority=5
@@ -165,6 +166,7 @@ def orchestrator_output():
 @pytest.fixture
 def crawler_output():
     return CrawlerCrawlOutput(
+        thought_process="Searching for latest AI agent frameworks and industry trends.",
         findings=[
             CrawlFinding(
                 topic="AI Agent Frameworks",
@@ -188,6 +190,7 @@ def crawler_output():
 @pytest.fixture
 def researcher_output():
     return ResearcherOutput(
+        thought_process="Analyzing current AI agent architectures and emerging standards.",
         title="AI Agent Architecture Analysis",
         executive_summary="Multi-agent systems evolving toward spatial paradigms",
         key_findings=["LangGraph adoption up 340%", "MCP becoming standard"],
@@ -200,6 +203,7 @@ def researcher_output():
 @pytest.fixture
 def viral_engineer_output():
     return ViralContentOutput(
+        thought_process="Synthesizing research into high-impact social media posts.",
         topic="AI Agent Systems",
         drafts=[
             ContentDraft(
@@ -216,6 +220,7 @@ def viral_engineer_output():
 @pytest.fixture
 def comms_output():
     return CommsOutput(
+        thought_process="Reviewing inbox and drafting necessary replies and escalations.",
         processed=[
             CommItem(
                 type="reply",
@@ -233,6 +238,7 @@ def comms_output():
 @pytest.fixture
 def devops_output():
     return DevOpsHealthOutput(
+        thought_process="Performing automated health checks across all agent services.",
         diagnosis="All systems nominal. No critical issues.",
         agents_online=7,
         agents_error=1,
@@ -245,6 +251,7 @@ def devops_output():
 @pytest.fixture
 def archivist_output():
     return ArchivistKBOutput(
+        thought_process="Indexing and archiving new research and crawl findings.",
         entries_organized=3,
         entries=[
             KBEntry(
@@ -261,6 +268,7 @@ def archivist_output():
 @pytest.fixture
 def frontend_designer_output():
     return FrontendDesignOutput(
+        thought_process="Crafting UI mockups based on current design systems.",
         type="mockup",
         description="Dashboard UI with glassmorphism dark theme",
         design_notes="Using neutral-950 background with emerald/violet accent",
