@@ -18,6 +18,8 @@ from agents.comms.agent import CommsAgent
 from agents.devops.agent import DevOpsAgent
 from agents.archivist.agent import ArchivistAgent
 from agents.frontend_designer.agent import FrontendDesignerAgent
+from agents.developer.agent import DeveloperAgent
+from agents.reviewer.agent import ReviewerAgent
 
 # All agent classes in the order they appear on the office floor
 AGENT_CLASSES: list[type[BaseAgent[Any]]] = [
@@ -29,6 +31,8 @@ AGENT_CLASSES: list[type[BaseAgent[Any]]] = [
     DevOpsAgent,
     ArchivistAgent,
     FrontendDesignerAgent,
+    DeveloperAgent,
+    ReviewerAgent,
 ]
 
 

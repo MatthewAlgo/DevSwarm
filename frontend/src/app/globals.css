@@ -78,12 +78,23 @@ body {
   -webkit-backdrop-filter: blur(14px);
 }
 
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #262626; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #333; }
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+.animate-bounce-slow { animation: bounce-slow 3s ease-in-out infinite; }
+
 /* ── Grid ── */
 .room-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: 1fr 1.6fr 1fr;
-  gap: 10px;
+  grid-template-rows: repeat(3, minmax(180px, auto));
+  gap: 12px;
 }
 @media (max-width: 768px) {
   .room-grid {

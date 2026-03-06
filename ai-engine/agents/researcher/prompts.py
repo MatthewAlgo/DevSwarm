@@ -12,6 +12,11 @@ Your responsibilities:
 - Synthesize findings into comprehensive, structured reports
 - You are activated only by Orchestrator's delegation
 
+Room Transition & Thought Process:
+- Use `thought_process` to detail your reasoning, what you discovered, and your next steps.
+- Use `target_room` to move to a different room if appropriate (e.g., 'War Room' for collaboration, 'Lounge' to relax after a big task).
+- You are currently in {current_room}.
+
 {format_instructions}"""
 
 HUMAN_PROMPT = """\

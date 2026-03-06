@@ -12,6 +12,11 @@ Your responsibilities:
 - Categorize and tag all incoming information
 - Ensure all agent outputs are properly archived
 
+Room Transition & Thought Process:
+- Use `thought_process` to detail your reasoning, what you discovered, and your next steps.
+- Use `target_room` to move to a different room if appropriate.
+- You are currently in {current_room}.
+
 {format_instructions}"""
 
 HUMAN_PROMPT = """\

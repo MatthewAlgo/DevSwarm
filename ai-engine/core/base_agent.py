@@ -133,8 +133,12 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
         agent_logger = logging.getLogger(f"devswarm.agents.{self.agent_id}")
 
         try:
-            # 1. Set Working
+            # 1. Fetch current state and set Working
             agent_logger.info(f"{self.name} starting work")
+            current_agent_data = await ctx.get_agent(self.agent_id)
+            # Use room from DB if available, else default_room
+            current_room_val = current_agent_data.get("room") if current_agent_data else self.default_room
+
             # Don't force move to default room - allow Orchestrator to place them in War Room
             await ctx.update_agent(
                 self.agent_id,
@@ -143,7 +147,7 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
             )
 
             # 2. Build chain input
-            chain_input = self._build_chain_input(state)
+            chain_input = self._build_chain_input(state, current_room=str(current_room_val))
 
             # 3. Invoke chain
             agent_logger.info(f"{self.name} invoking LLM chain")
@@ -156,20 +160,35 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
             # 4. Execute agent-specific logic
             state = await self.execute(state, parsed, ctx)
 
-            # 5. Set Idle and Return to Default Room
+            # 5. Determine room transition
+            # If the agent explicitly chose a target_room, move there.
+            # Otherwise, stay in the current room.
+            target_room = getattr(parsed, "target_room", None)
+            
+            # Ensure current_room_val is a RoomEnum for the update_agent call
+            if isinstance(current_room_val, str):
+                current_room_enum = RoomEnum(current_room_val)
+            else:
+                current_room_enum = current_room_val
+
+            final_room = target_room or current_room_enum
+            
+            thought_process = getattr(parsed, "thought_process", f"Task complete. {self.role} work finished successfully.")
+
+            # 6. Set Idle and Final Room
             await ctx.update_agent(
                 self.agent_id,
-                current_room=RoomEnum(self.default_room) if self.default_room else RoomEnum.DESKS,
+                current_room=final_room,
                 status=AgentStatusEnum.IDLE,
                 current_task="",
-                thought_chain=f"Task complete. {self.role} work finished successfully.",
+                thought_chain=thought_process,
             )
 
-            # 6. Log activity
+            # 7. Log activity
             await ctx.log_activity(
                 self.agent_id,
                 f"{self.agent_id}_complete",
-                {"output_type": type(parsed).__name__},
+                {"output_type": type(parsed).__name__, "room": final_room.value},
             )
 
             return state
@@ -194,16 +213,25 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
             state["error"] = str(e)
             return state
 
-    def _build_chain_input(self, state: OfficeState) -> dict[str, Any]:
+    def _build_chain_input(self, state: OfficeState, current_room: str = "Desks") -> dict[str, Any]:
         """Build the input dict for the chain from the current state."""
-        return {
-            "current_goal": state.get("current_goal", ""),
-            "active_tasks": ", ".join(state.get("active_tasks", [])) or "None",
-            "delegated_agents": ", ".join(state.get("delegated_agents", [])) or "None",
-            "research_findings": str(state.get("research_findings", {})) or "None",
-            "content_drafts": str(state.get("content_drafts", [])) or "None",
-            "crawl_results": str(state.get("crawl_results", [])) or "None",
-            "health_report": str(state.get("health_report", {})) or "None",
-            "error": state.get("error", ""),
-            "format_instructions": self.parser.get_format_instructions(),
+        # Define core mapping of state keys to input keys
+        # This makes it easy to add/remove state keys without changing the dict creation logic
+        keys_to_extract = [
+            "current_goal", "active_tasks", "delegated_agents", 
+            "research_findings", "content_drafts", "crawl_results", 
+            "health_report", "design_output", "error"
+        ]
+        
+        chain_input = {
+            k: (", ".join(state.get(k, [])) if isinstance(state.get(k), list) else str(state.get(k, "")) or "None")
+            for k in keys_to_extract
         }
+        
+        # Add special/formatted fields
+        chain_input.update({
+            "current_room": current_room,
+            "format_instructions": self.parser.get_format_instructions(),
+        })
+        
+        return chain_input

@@ -113,6 +113,14 @@ INSERT INTO agents (id, name, role, current_room, status, tech_stack, avatar_col
      ARRAY['update_notion', 'organize_files', 'create_doc'], '#06b6d4'),
     ('frontend_designer', 'Frontend Designer', 'Frontend Designer', 'Desks', 'Idle',
      ARRAY['generate_image', 'critique_ui', 'create_mockup'], '#f97316'),
+    ('developer_1', 'Dev Alpha', 'Software Engineer', 'Desks', 'Idle',
+     ARRAY['python', 'go', 'react'], '#3b82f6'),
+    ('developer_2', 'Dev Beta', 'Software Engineer', 'Desks', 'Idle',
+     ARRAY['typescript', 'node', 'docker'], '#10b981'),
+    ('reviewer_1', 'Reviewer Pro', 'Code Quality Lead', 'War Room', 'Idle',
+     ARRAY['testing', 'security', 'performance'], '#f59e0b'),
+    ('system', 'System', 'Core Engine', 'Server Room', 'Idle',
+     ARRAY[]::TEXT[], '#4b5563'),
     ('user', 'User', 'Human Administrator', 'Private Office', 'Idle',
      ARRAY[]::TEXT[], '#10b981');
 

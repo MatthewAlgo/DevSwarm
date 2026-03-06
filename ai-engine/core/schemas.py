@@ -5,7 +5,20 @@ Used by PydanticOutputParser in each agent's LangChain chain.
 
 from __future__ import annotations
 
+from typing import Optional
 from pydantic import BaseModel, Field
+from models import RoomEnum
+
+
+class BaseAgentOutput(BaseModel):
+    """Common output fields for all DevSwarm agents."""
+
+    thought_process: str = Field(
+        description="Internal monologue or reasoning for the agent's actions"
+    )
+    target_room: Optional[RoomEnum] = Field(
+        None, description="Optional room to move to after this task (e.g. War Room, Lounge)"
+    )
 
 
 # --- Orchestrator (CEO / Orchestrator) ---
@@ -21,7 +34,7 @@ class SubtaskAssignment(BaseModel):
     priority: int = Field(default=3, ge=1, le=5, description="Priority 1-5 (5=highest)")
 
 
-class OrchestratorRoutingOutput(BaseModel):
+class OrchestratorRoutingOutput(BaseAgentOutput):
     """Orchestrator's task decomposition and delegation plan."""
 
     analysis: str = Field(
@@ -57,7 +70,7 @@ class CrawlFinding(BaseModel):
     tags: list[str] = Field(default_factory=list, description="Topic tags")
 
 
-class CrawlerCrawlOutput(BaseModel):
+class CrawlerCrawlOutput(BaseAgentOutput):
     """Crawler's structured crawl results."""
 
     findings: list[CrawlFinding] = Field(default_factory=list)
@@ -69,7 +82,7 @@ class CrawlerCrawlOutput(BaseModel):
 # --- Researcher (Deep Researcher) ---
 
 
-class ResearcherOutput(BaseModel):
+class ResearcherOutput(BaseAgentOutput):
     """Researcher's structured research report."""
 
     title: str = Field(description="Research report title")
@@ -103,7 +116,7 @@ class ContentDraft(BaseModel):
     call_to_action: str = Field(default="", description="Optional CTA")
 
 
-class ViralContentOutput(BaseModel):
+class ViralContentOutput(BaseAgentOutput):
     """Viral Engineer's structured content creation output."""
 
     topic: str = Field(description="Topic the content is about")
@@ -126,7 +139,7 @@ class CommItem(BaseModel):
     priority: str = Field(default="normal", description="high/normal/low")
 
 
-class CommsOutput(BaseModel):
+class CommsOutput(BaseAgentOutput):
     """Comms' structured communications output."""
 
     processed: list[CommItem] = Field(default_factory=list)
@@ -139,7 +152,7 @@ class CommsOutput(BaseModel):
 # --- DevOps (DevOps Monitor) ---
 
 
-class DevOpsHealthOutput(BaseModel):
+class DevOpsHealthOutput(BaseAgentOutput):
     """DevOps's system health check report."""
 
     diagnosis: str = Field(description="Root cause analysis or system status")
@@ -168,7 +181,7 @@ class KBEntry(BaseModel):
     )
 
 
-class ArchivistKBOutput(BaseModel):
+class ArchivistKBOutput(BaseAgentOutput):
     """Archivist's knowledge base organization output."""
 
     entries_organized: int = Field(default=0, description="Number of entries processed")
@@ -179,7 +192,7 @@ class ArchivistKBOutput(BaseModel):
 # --- Frontend Designer (Frontend Designer) ---
 
 
-class FrontendDesignOutput(BaseModel):
+class FrontendDesignOutput(BaseAgentOutput):
     """Frontend Designer's design output."""
 
     type: str = Field(description="mockup/asset/critique")
@@ -187,3 +200,46 @@ class FrontendDesignOutput(BaseModel):
     design_notes: str = Field(description="Technical design notes")
     iterations: int = Field(default=1, description="Number of design iterations")
     approval_status: str = Field(default="draft", description="draft/review/approved")
+
+
+# --- Developer (Software Developer) ---
+
+
+class CodeChange(BaseModel):
+    """A single code change or file creation."""
+
+    file_path: str = Field(description="Path to the file being modified or created")
+    action: str = Field(description="create/modify/delete")
+    description: str = Field(description="What was changed in this file")
+    code_snippet: str = Field(default="", description="The actual code or patch")
+
+
+class DeveloperOutput(BaseAgentOutput):
+    """Developer's structured coding output."""
+
+    implementation_plan: str = Field(description="Detailed plan for implementation")
+    changes: list[CodeChange] = Field(default_factory=list, description="List of code changes")
+    technical_debt_notes: str = Field(default="", description="Notes on technical debt or future improvements")
+    ready_for_review: bool = Field(default=True, description="Whether the code is ready for reviewer inspection")
+
+
+# --- Reviewer (Code Reviewer) ---
+
+
+class ReviewComment(BaseModel):
+    """A single comment from a code review."""
+
+    file_path: str = Field(description="File being commented on")
+    line_number: Optional[int] = Field(None, description="Line number if applicable")
+    severity: str = Field(description="critical/major/minor/nit")
+    comment: str = Field(description="The review comment")
+    suggestion: str = Field(default="", description="Suggested fix")
+
+
+class ReviewerOutput(BaseAgentOutput):
+    """Reviewer's structured code review output."""
+
+    overall_verdict: str = Field(description="approved/request_changes/comment_only")
+    summary: str = Field(description="Executive summary of the review")
+    comments: list[ReviewComment] = Field(default_factory=list, description="Detailed review comments")
+    loop_back_to_developer: bool = Field(default=False, description="Whether the code needs to go back to the developer for fixes")

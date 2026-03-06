@@ -9,7 +9,7 @@ import (
 )
 
 // ProxyToPython forwards requests to the AI Engine.
-func ProxyToPython(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ProxyToPython(w http.ResponseWriter, r *http.Request) {
 	aiURL := os.Getenv("AI_ENGINE_URL")
 	if aiURL == "" {
 		aiURL = "http://localhost:8000"
@@ -17,7 +17,7 @@ func ProxyToPython(w http.ResponseWriter, r *http.Request) {
 
 	target, err := url.Parse(aiURL)
 	if err != nil {
-		respondError(w, http.StatusInternalServerError, "Invalid AI Engine URL configuration")
+		h.respondError(w, http.StatusInternalServerError, "Invalid AI Engine URL configuration")
 		return
 	}
 
@@ -50,7 +50,7 @@ func ProxyToPython(w http.ResponseWriter, r *http.Request) {
 
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 		fmt.Printf("[Proxy] Error: %v\n", err)
-		respondError(w, http.StatusBadGateway, "AI Engine unavailable")
+		h.respondError(w, http.StatusBadGateway, "AI Engine unavailable")
 	}
 
 	proxy.ServeHTTP(w, r)
