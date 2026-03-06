@@ -11,8 +11,9 @@ import (
 )
 
 func TestRespondJSON(t *testing.T) {
+	h := NewHandler(nil)
 	rr := httptest.NewRecorder()
-	respondJSON(rr, http.StatusOK, map[string]string{"status": "ok"})
+	h.respondJSON(rr, http.StatusOK, map[string]string{"status": "ok"})
 
 	if rr.Code != http.StatusOK {
 		t.Errorf("Status: got %d, want %d", rr.Code, http.StatusOK)
@@ -27,8 +28,9 @@ func TestRespondJSON(t *testing.T) {
 }
 
 func TestRespondJSONCreated(t *testing.T) {
+	h := NewHandler(nil)
 	rr := httptest.NewRecorder()
-	respondJSON(rr, http.StatusCreated, map[string]string{"id": "42"})
+	h.respondJSON(rr, http.StatusCreated, map[string]string{"id": "42"})
 
 	if rr.Code != http.StatusCreated {
 		t.Errorf("Status: got %d, want %d", rr.Code, http.StatusCreated)
@@ -36,8 +38,9 @@ func TestRespondJSONCreated(t *testing.T) {
 }
 
 func TestRespondError(t *testing.T) {
+	h := NewHandler(nil)
 	rr := httptest.NewRecorder()
-	respondError(rr, http.StatusBadRequest, "Invalid input")
+	h.respondError(rr, http.StatusBadRequest, "Invalid input")
 
 	if rr.Code != http.StatusBadRequest {
 		t.Errorf("Status: got %d, want %d", rr.Code, http.StatusBadRequest)
@@ -52,8 +55,9 @@ func TestRespondError(t *testing.T) {
 }
 
 func TestRespondErrorNotFound(t *testing.T) {
+	h := NewHandler(nil)
 	rr := httptest.NewRecorder()
-	respondError(rr, http.StatusNotFound, "Agent not found")
+	h.respondError(rr, http.StatusNotFound, "Agent not found")
 
 	if rr.Code != http.StatusNotFound {
 		t.Errorf("Status: got %d, want %d", rr.Code, http.StatusNotFound)
@@ -61,8 +65,9 @@ func TestRespondErrorNotFound(t *testing.T) {
 }
 
 func TestRespondErrorInternal(t *testing.T) {
+	h := NewHandler(nil)
 	rr := httptest.NewRecorder()
-	respondError(rr, http.StatusInternalServerError, "Database error")
+	h.respondError(rr, http.StatusInternalServerError, "Database error")
 
 	var body map[string]string
 	json.NewDecoder(rr.Body).Decode(&body)
@@ -73,12 +78,13 @@ func TestRespondErrorInternal(t *testing.T) {
 }
 
 func TestRespondJSONArray(t *testing.T) {
+	h := NewHandler(nil)
 	rr := httptest.NewRecorder()
 	data := []map[string]string{
 		{"id": "1", "name": "Orchestrator"},
 		{"id": "2", "name": "Researcher"},
 	}
-	respondJSON(rr, http.StatusOK, data)
+	h.respondJSON(rr, http.StatusOK, data)
 
 	var body []map[string]string
 	json.NewDecoder(rr.Body).Decode(&body)
@@ -89,12 +95,13 @@ func TestRespondJSONArray(t *testing.T) {
 }
 
 func TestRespondJSONNestedObject(t *testing.T) {
+	h := NewHandler(nil)
 	rr := httptest.NewRecorder()
 	data := map[string]interface{}{
 		"status": "ok",
 		"data":   map[string]int{"count": 42},
 	}
-	respondJSON(rr, http.StatusOK, data)
+	h.respondJSON(rr, http.StatusOK, data)
 
 	var body map[string]interface{}
 	json.NewDecoder(rr.Body).Decode(&body)

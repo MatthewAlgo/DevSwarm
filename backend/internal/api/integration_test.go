@@ -94,7 +94,8 @@ func TestMain(m *testing.M) {
 func TestListAgentsIntegration(t *testing.T) {
 	// Setup Router
 	h := hub.New()
-	r := api.NewRouter(h)
+	repo := db.NewRepository(db.Pool)
+	r := api.NewRouter(h, repo)
 
 	// Create Request
 	req := httptest.NewRequest("GET", "/api/agents", nil)
