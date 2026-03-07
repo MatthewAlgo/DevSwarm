@@ -52,6 +52,8 @@ class AgentContext(Protocol):
 
     async def get_all_agents(self) -> list[dict]: ...
 
+    async def get_agent(self, agent_id: str) -> Optional[dict]: ...
+
 
 class LiveContext:
     """Production context that delegates to the real database module."""
@@ -123,6 +125,11 @@ class LiveContext:
         import database as db
 
         return await db.get_all_agents()
+
+    async def get_agent(self, agent_id: str) -> Optional[dict]:
+        import database as db
+
+        return await db.get_agent(agent_id)
 
 
 class MockContext:

@@ -65,6 +65,16 @@ async def frontend_designer_node(state: OfficeState) -> OfficeState:
     return await registry["frontend_designer"].process(state)
 
 
+async def developer_node(state: OfficeState) -> OfficeState:
+    """Developer writes code."""
+    return await registry["developer"].process(state)
+
+
+async def reviewer_node(state: OfficeState) -> OfficeState:
+    """Reviewer checks code quality."""
+    return await registry["reviewer"].process(state)
+
+
 # --- Conditional Routing ---
 
 
@@ -82,8 +92,22 @@ def route_from_orchestrator(state: OfficeState) -> str:
         "devops": NodeName.DEVOPS,
         "archivist": NodeName.ARCHIVIST,
         "frontend_designer": NodeName.FRONTEND_DESIGNER,
+        "developer": NodeName.DEVELOPER,
+        "reviewer": NodeName.REVIEWER,
     }
     return agent_map.get(delegated[0], END)
+
+
+def route_after_dev(state: OfficeState) -> str:
+    """After development, always route to Reviewer."""
+    return NodeName.REVIEWER
+
+
+def route_after_review(state: OfficeState) -> str:
+    """After review, loop back to Developer if error is present, else Archivist."""
+    if state.get("error") and "Review failed" in state.get("error", ""):
+        return NodeName.DEVELOPER
+    return NodeName.ARCHIVIST
 
 
 def route_after_research(state: OfficeState) -> str:
@@ -121,6 +145,8 @@ def build_workflow() -> StateGraph:
     workflow.add_node(NodeName.DEVOPS, devops_node)
     workflow.add_node(NodeName.ARCHIVIST, archivist_node)
     workflow.add_node(NodeName.FRONTEND_DESIGNER, frontend_designer_node)
+    workflow.add_node(NodeName.DEVELOPER, developer_node)
+    workflow.add_node(NodeName.REVIEWER, reviewer_node)
 
     # Entry point
     workflow.set_entry_point(NodeName.ORCHESTRATOR)
@@ -138,7 +164,23 @@ def build_workflow() -> StateGraph:
             NodeName.DEVOPS: NodeName.DEVOPS,
             NodeName.ARCHIVIST: NodeName.ARCHIVIST,
             NodeName.FRONTEND_DESIGNER: NodeName.FRONTEND_DESIGNER,
+            NodeName.DEVELOPER: NodeName.DEVELOPER,
+            NodeName.REVIEWER: NodeName.REVIEWER,
         },
+    )
+
+    # Developer → Reviewer
+    workflow.add_conditional_edges(
+        NodeName.DEVELOPER,
+        route_after_dev,
+        {NodeName.REVIEWER: NodeName.REVIEWER},
+    )
+
+    # Reviewer → Developer (loop) or Archivist
+    workflow.add_conditional_edges(
+        NodeName.REVIEWER,
+        route_after_review,
+        {NodeName.DEVELOPER: NodeName.DEVELOPER, NodeName.ARCHIVIST: NodeName.ARCHIVIST},
     )
 
     # Research → Content or Archive

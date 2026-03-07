@@ -58,6 +58,7 @@ def random_orchestrator_output() -> OrchestratorRoutingOutput:
     ]
     n_subtasks = random.randint(0, 4)
     return OrchestratorRoutingOutput(
+        thought_process="Reasoning",
         analysis=random.choice(
             [
                 "Goal requires deep analysis",
@@ -75,12 +76,14 @@ def random_orchestrator_output() -> OrchestratorRoutingOutput:
         ],
         meeting_required=random.choice([True, False]),
         meeting_agents=random.sample(agents, k=random.randint(0, 3)),
+        target_room=None,
     )
 
 
 def random_crawler_output() -> CrawlerCrawlOutput:
     n = random.randint(0, 5)
     return CrawlerCrawlOutput(
+        thought_process="Reasoning",
         findings=[
             CrawlFinding(
                 topic=random.choice(["AI News", "Tech Trends", "Open Source", "Cloud"]),
@@ -90,11 +93,13 @@ def random_crawler_output() -> CrawlerCrawlOutput:
             for i in range(n)
         ],
         next_crawl_focus=random.choice(["AI", "Cloud", "Security", ""]),
+        target_room=None,
     )
 
 
 def random_researcher_output() -> ResearcherOutput:
     return ResearcherOutput(
+        thought_process="Reasoning",
         title=random.choice(
             ["AI Architecture Study", "Market Analysis", "Tech Report"]
         ),
@@ -103,11 +108,13 @@ def random_researcher_output() -> ResearcherOutput:
         data_sources=["arxiv.org", "github.com"][: random.randint(0, 2)],
         recommendations=[f"Rec {i}" for i in range(random.randint(0, 3))],
         confidence_level=random.choice(["high", "medium", "low"]),
+        target_room=None,
     )
 
 
 def random_viral_engineer_output() -> ViralContentOutput:
     return ViralContentOutput(
+        thought_process="Reasoning",
         topic=random.choice(["AI Agents", "DevSwarm Update", "Tech Innovation"]),
         drafts=[
             ContentDraft(
@@ -118,11 +125,13 @@ def random_viral_engineer_output() -> ViralContentOutput:
             for i in range(random.randint(0, 3))
         ],
         sentiment_analysis=random.choice(["positive", "neutral", "mixed"]),
+        target_room=None,
     )
 
 
 def random_comms_output() -> CommsOutput:
     return CommsOutput(
+        thought_process="Reasoning",
         processed=[
             CommItem(
                 type="reply",
@@ -134,11 +143,13 @@ def random_comms_output() -> CommsOutput:
         ],
         escalations=[f"Escalation {i}" for i in range(random.randint(0, 2))],
         summary="Communications processed",
+        target_room=None,
     )
 
 
 def random_devops_output() -> DevOpsHealthOutput:
     return DevOpsHealthOutput(
+        thought_process="Reasoning",
         diagnosis=random.choice(
             ["All systems nominal", "Minor latency detected", "Agent recovery needed"]
         ),
@@ -146,12 +157,14 @@ def random_devops_output() -> DevOpsHealthOutput:
         agents_error=random.randint(0, 2),
         system_status=random.choice(["healthy", "recovering", "critical"]),
         actions_taken=[f"Action {i}" for i in range(random.randint(0, 3))],
+        target_room=None,
     )
 
 
 def random_archivist_output() -> ArchivistKBOutput:
     n = random.randint(0, 5)
     return ArchivistKBOutput(
+        thought_process="Reasoning",
         entries_organized=n,
         entries=[
             KBEntry(
@@ -161,16 +174,19 @@ def random_archivist_output() -> ArchivistKBOutput:
             for i in range(n)
         ],
         summary=f"Organized {n} entries",
+        target_room=None,
     )
 
 
 def random_frontend_designer_output() -> FrontendDesignOutput:
     return FrontendDesignOutput(
+        thought_process="Reasoning",
         type=random.choice(["mockup", "asset", "critique"]),
         description=f"{random.choice(['Dashboard', 'Profile', 'Settings'])} UI design",
         design_notes="Glassmorphism with dark background",
         iterations=random.randint(1, 4),
         approval_status=random.choice(["draft", "review", "approved"]),
+        target_room=None,
     )
 
 

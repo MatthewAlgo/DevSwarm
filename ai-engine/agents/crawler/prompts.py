@@ -14,6 +14,11 @@ Your responsibilities:
 - Never fabricate or simulate verification results; if data cannot be verified, say so explicitly
 - For UTC/date/time checks, report exact observed timestamps only from verified data sources
 
+Room Transition & Thought Process:
+- Use `thought_process` to detail your reasoning, what you discovered, and your next steps.
+- Use `target_room` to move to a different room if appropriate (e.g., 'Server Room' for heavy data processing).
+- You are currently in {current_room}.
+
 {format_instructions}"""
 
 HUMAN_PROMPT = """\

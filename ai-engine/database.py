@@ -6,12 +6,22 @@ Async PostgreSQL operations via asyncpg.
 import json
 import logging
 import os
+from datetime import datetime
 from typing import Any, Optional
 
 import asyncpg  # type: ignore
 import redis_client
 
 logger = logging.getLogger("devswarm.database")
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        import uuid
+        if isinstance(obj, uuid.UUID):
+            return str(obj)
+        return super().default(obj)
 
 _pool: Optional[asyncpg.Pool] = None
 
@@ -81,7 +91,8 @@ async def get_task(task_id: str) -> Optional[dict]:
         return None
     task = dict(row)
     task["id"] = str(task["id"])
-    task["assigned_agents"] = task["assigned_agents"] if task["assigned_agents"] else []
+    agents = task.get("assigned_agents")
+    task["assigned_agents"] = list(agents) if agents else []
     return task
 
 
@@ -137,12 +148,9 @@ async def update_agent(
     await increment_state_version()
 
     # Publish delta
-    try:
-        updated_agent = await get_agent(agent_id)
-        if updated_agent:
-            await redis_client.publish_delta("agents", agent_id, updated_agent)
-    except Exception as e:
-        logger.warning("Agent delta publish failed: %s", e)
+    updated_agent = await get_agent(agent_id)
+    if updated_agent:
+        await _publish_delta_json("agents", agent_id, updated_agent)
 
 
 async def bulk_update_agents(status: str, room: str) -> None:
@@ -181,6 +189,16 @@ async def increment_state_version() -> None:
         await redis_client.publish_state_changed()
     except Exception as e:
         logger.debug("Redis pub/sub notify skipped (non-fatal): %s", e)
+
+
+async def _publish_delta_json(category: str, entity_id: str, data: dict) -> None:
+    """Helper to publish delta to Redis with JSON serialization for datetime."""
+    try:
+        # Round-trip through JSON to handle datetime serialization
+        serializable_data = json.loads(json.dumps(data, cls=DateTimeEncoder))
+        await redis_client.publish_delta(category, entity_id, serializable_data)
+    except Exception as e:
+        logger.warning(f"{category.capitalize()} delta publish failed: {e}")
 
 
 async def update_global_state(state_data: dict) -> None:
@@ -282,12 +300,9 @@ async def create_task(
     await increment_state_version()
 
     # Publish delta
-    try:
-        updated_task = await get_task(task_id)
-        if updated_task:
-            await redis_client.publish_delta("tasks", task_id, updated_task)
-    except Exception as e:
-        logger.warning("Task delta publish failed: %s", e)
+    updated_task = await get_task(task_id)
+    if updated_task:
+        await _publish_delta_json("tasks", task_id, updated_task)
 
     return task_id
 
@@ -303,12 +318,10 @@ async def update_task_status(task_id: str, status: str) -> None:
     await increment_state_version()
 
     # Publish delta
-    try:
-        updated_task = await get_task(task_id)
-        if updated_task:
-            await redis_client.publish_delta("tasks", task_id, updated_task)
-    except Exception as e:
-        logger.warning("Task status delta publish failed: %s", e)
+    updated_task = await get_task(task_id)
+    if updated_task:
+        await _publish_delta_json("tasks", task_id, updated_task)
+
 
 
 # --- Message Operations ---
@@ -331,12 +344,9 @@ async def create_message(
     msg_id = str(row["id"])
 
     # Publish delta
-    try:
-        updated_msg = await get_message(msg_id)
-        if updated_msg:
-            await redis_client.publish_delta("messages", msg_id, updated_msg)
-    except Exception as e:
-        logger.warning("Message delta publish failed: %s", e)
+    updated_msg = await get_message(msg_id)
+    if updated_msg:
+        await _publish_delta_json("messages", msg_id, updated_msg)
 
     return msg_id
 

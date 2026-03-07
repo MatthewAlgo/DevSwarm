@@ -42,20 +42,23 @@ func main() {
 		defer cache.Close()
 	}
 
+	// Create repository
+	repo := db.NewRepository(db.Pool)
+
 	// Create WebSocket hub
 	wsHub := hub.New()
 	go wsHub.Run()
 	log.Println("[Main] WebSocket Hub started")
 
 	// Create and start state poller (30s heartbeat, Redis pub/sub handles instant updates)
-	poller := state.NewPoller(wsHub.Broadcast, db.GetFullState, 30*time.Second)
+	poller := state.NewPoller(wsHub.Broadcast, repo.GetFullState, 30*time.Second)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go poller.Start(ctx)
 	log.Println("[Main] State Poller started")
 
-	// Create HTTP router
-	router := api.NewRouter(wsHub)
+	// Create HTTP router with repository
+	router := api.NewRouter(wsHub, repo)
 
 	// Configure HTTP server
 	port := os.Getenv("PORT")

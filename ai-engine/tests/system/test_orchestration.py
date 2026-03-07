@@ -21,12 +21,14 @@ TEST_CASES = [
         "Check system health",
         "devops",
         DevOpsHealthOutput(
+            thought_process="Mocking health check",
             diagnosis="Systems nominal.",
             agents_online=8,
             agents_error=0,
             agents_recovered=0,
             system_status="healthy",
             actions_taken=[],
+            target_room=None,
         ),
         "Server Room",
     ),
@@ -34,6 +36,7 @@ TEST_CASES = [
         "Create viral content about AI",
         "viral_engineer",
         ViralContentOutput(
+            thought_process="Mocking viral content",
             topic="AI",
             drafts=[
                 ContentDraft(
@@ -44,6 +47,7 @@ TEST_CASES = [
                 )
             ],
             sentiment_analysis="Positive",
+            target_room=None,
         ),
         "Lounge",
     ),
@@ -51,6 +55,7 @@ TEST_CASES = [
         "Research recent AI news",
         "crawler",
         CrawlerCrawlOutput(
+            thought_process="Mocking crawl",
             findings=[
                 CrawlFinding(
                     topic="AI News",
@@ -61,6 +66,7 @@ TEST_CASES = [
                 )
             ],
             next_crawl_focus="More news",
+            target_room=None,
         ),
         "Desks",
     ),
@@ -91,6 +97,7 @@ async def test_orchestration_flows(
 
     # Orchestrator's Mock Response (Dynamic based on target)
     orchestrator_response = OrchestratorRoutingOutput(
+        thought_process=f"Reasoning for delegating to {target_agent}",
         analysis=f"Delegating to {target_agent}",
         subtasks=[SubtaskAssignment(agent=target_agent, task=goal, priority=5)],
         meeting_required=False,

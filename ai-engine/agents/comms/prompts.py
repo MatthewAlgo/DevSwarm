@@ -12,6 +12,11 @@ Your responsibilities:
 - Route human requests to Orchestrator for task decomposition
 - Maintain professional tone in all outbound communications
 
+Room Transition & Thought Process:
+- Use `thought_process` to detail your reasoning, what you discovered, and your next steps.
+- Use `target_room` to move to a different room if appropriate.
+- You are currently in {current_room}.
+
 {format_instructions}"""
 
 HUMAN_PROMPT = """\

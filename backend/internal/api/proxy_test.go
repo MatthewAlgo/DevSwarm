@@ -22,7 +22,8 @@ func TestProxyToPythonStripsUpstreamCORSHeaders(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/trigger", strings.NewReader(`{"goal":"test"}`))
 	rr := httptest.NewRecorder()
 
-	ProxyToPython(rr, req)
+	h := NewHandler(nil)
+	h.ProxyToPython(rr, req)
 
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status: got %d, want %d", rr.Code, http.StatusOK)

@@ -45,6 +45,8 @@ class NodeName(str, Enum):
     DEVOPS = "DevOps"
     ARCHIVIST = "Archivist"
     FRONTEND_DESIGNER = "FrontendDesigner"
+    DEVELOPER = "Developer"
+    REVIEWER = "Reviewer"
 
 
 class AgentState(BaseModel):
