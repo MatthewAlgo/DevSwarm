@@ -3,8 +3,7 @@
 import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { StatusBadge } from "./AgentAvatar";
-import type { AgentStatus } from "@/lib/types";
-import { ROOM_ICON, STATUS_THEME } from "@/lib/types";
+import { ROOM_ICON } from "@/lib/types";
 
 export default function InspectorPanel() {
     const select = useStore((s) => s.select);

@@ -4,7 +4,7 @@ import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { StatusBadge } from "./AgentAvatar";
 import type { RoomType, Message, Agent } from "@/lib/types";
-import { ROOM_ICON, STATUS_THEME } from "@/lib/types";
+import { ROOM_ICON } from "@/lib/types";
 
 /* ── Room visual config ── */
 const ROOMS: {

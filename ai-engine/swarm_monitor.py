@@ -6,7 +6,6 @@ Polls the API for messages and agent state changes to provide a live view of the
 
 import asyncio
 import os
-import time
 import httpx
 from datetime import datetime
 from dotenv import load_dotenv
@@ -133,5 +132,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main_loop())
     except KeyboardInterrupt:
-        print("
-Monitor stopped.")
+        print("\nMonitor stopped.")

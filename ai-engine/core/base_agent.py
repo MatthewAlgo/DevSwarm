@@ -221,23 +221,16 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
 
     def _build_chain_input(self, state: OfficeState, current_room: str = "Desks") -> dict[str, Any]:
         """Build the input dict for the chain from the current state."""
-        # Define core mapping of state keys to input keys
-        # This makes it easy to add/remove state keys without changing the dict creation logic
-        keys_to_extract = [
-            "current_goal", "active_tasks", "delegated_agents", 
-            "research_findings", "content_drafts", "crawl_results", 
-            "health_report", "design_output", "error"
-        ]
-        
-        chain_input = {
-            k: (", ".join(str(item) for item in state.get(k, [])) if isinstance(state.get(k), list) else str(state.get(k, "")) or "None")
-            for k in keys_to_extract
-        }
-        
-        # Add special/formatted fields
-        chain_input.update({
+        return {
+            "current_goal": state.get("current_goal", ""),
+            "active_tasks": ", ".join(str(t) for t in state.get("active_tasks", [])) or "None",
+            "delegated_agents": ", ".join(str(a) for a in state.get("delegated_agents", [])) or "None",
+            "research_findings": str(state.get("research_findings", {})) or "None",
+            "content_drafts": str(state.get("content_drafts", [])) or "None",
+            "crawl_results": str(state.get("crawl_results", [])) or "None",
+            "health_report": str(state.get("health_report", {})) or "None",
+            "design_output": str(state.get("design_output", {})) or "None",
             "current_room": current_room,
+            "error": state.get("error", ""),
             "format_instructions": self.parser.get_format_instructions(),
-        })
-        
-        return chain_input
+        }

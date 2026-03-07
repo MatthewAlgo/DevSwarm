@@ -6,7 +6,7 @@ import { useStore } from "@/lib/store";
 import { StatusBadge } from "@/components/AgentAvatar";
 import InspectorPanel from "@/components/InspectorPanel";
 import type { Agent, AgentStatus, Message, Task } from "@/lib/types";
-import { STATUS_THEME, ROOM_ICON } from "@/lib/types";
+import { ROOM_ICON } from "@/lib/types";
 
 export default function AgentsPage() {
     const { agents, selectedId, select, tasksByAgent, messages } = useStore();
@@ -182,7 +182,7 @@ function AgentDetailedCard({
                             <p className="text-[10px] uppercase tracking-wider font-bold text-neutral-600">Current Focus</p>
                             <div className="bg-neutral-950/40 rounded-xl p-3 border border-neutral-800/50 group-hover:border-neutral-700/50 transition-colors">
                                 <p className="text-xs text-neutral-300 leading-relaxed italic">
-                                    "{agent.currentTask}"
+                                    &quot;{agent.currentTask}&quot;
                                 </p>
                             </div>
                         </div>

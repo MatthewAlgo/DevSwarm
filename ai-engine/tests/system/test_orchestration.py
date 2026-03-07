@@ -28,6 +28,7 @@ TEST_CASES = [
             agents_recovered=0,
             system_status="healthy",
             actions_taken=[],
+            target_room=None,
         ),
         "Server Room",
     ),
@@ -46,6 +47,7 @@ TEST_CASES = [
                 )
             ],
             sentiment_analysis="Positive",
+            target_room=None,
         ),
         "Lounge",
     ),
@@ -64,6 +66,7 @@ TEST_CASES = [
                 )
             ],
             next_crawl_focus="More news",
+            target_room=None,
         ),
         "Desks",
     ),
