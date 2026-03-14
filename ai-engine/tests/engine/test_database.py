@@ -7,7 +7,8 @@ import pytest
 import respx
 import httpx
 import jwt
-from unittest.mock import AsyncMock, patch
+import json
+
 
 import database as db
 
@@ -44,7 +45,7 @@ class TestGetPool:
 
     async def test_close_pool(self):
         """Verify close_pool safely closes the client."""
-        client = await db.get_pool()
+        await db.get_pool()
         assert db._client is not None
         await db.close_pool()
         assert db._client is None

@@ -1,12 +1,12 @@
 /**
  * Tests for components/OfficeFloorPlan.tsx — room grid, agents, empty state.
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import OfficeFloorPlan from "@/components/OfficeFloorPlan";
 import { useStore } from "@/lib/store";
-import { ALL_AGENTS, ORCHESTRATOR, RESEARCHER, DEVOPS } from "../helpers/fixtures";
+import { ALL_AGENTS, RESEARCHER } from "../helpers/fixtures";
 
 beforeEach(() => {
     useStore.setState({

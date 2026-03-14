@@ -132,7 +132,7 @@ describe("WSProvider", () => {
     });
 
     it("disconnects WebSocket on unmount", async () => {
-        let unmountFunc: any;
+        let unmountFunc: () => void = () => { };
         await act(async () => {
             const { unmount } = render(<WSProvider><div /></WSProvider>);
             unmountFunc = unmount;

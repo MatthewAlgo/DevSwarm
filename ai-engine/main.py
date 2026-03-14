@@ -4,13 +4,19 @@ REST API for state mutations, agent triggers, MCP server exposure, and health ch
 """
 
 import asyncio
+import os
+import jwt
 import logging
+from fastapi.responses import JSONResponse
+
 from contextlib import asynccontextmanager
 from typing import Optional, List
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from prometheus_fastapi_instrumentator import Instrumentator
+
 
 import database as db
 from models import (
@@ -21,7 +27,7 @@ from models import (
     TaskModel,
     MessageModel,
 )
-from core.state import create_initial_state, OfficeState
+from core.state import OfficeState
 from graph import graph, registry as agent_registry
 from mcp_server import list_all_tools
 from services.agent_dispatcher import AgentTaskDispatcher
@@ -119,7 +125,7 @@ _background_tasks: set[asyncio.Task] = set()
 
 # --- App ---
 
-from prometheus_fastapi_instrumentator import Instrumentator
+
 
 app = FastAPI(
     title="DevSwarm AI Engine",
@@ -139,9 +145,7 @@ async def auth_middleware(request, call_next):
     if request.url.path in ["/health", "/docs", "/openapi.json", "/metrics"]:
         return await call_next(request)
 
-    from fastapi.responses import JSONResponse
-    import jwt
-    import os
+
 
     secret = os.getenv("JWT_SECRET")
     if not secret:

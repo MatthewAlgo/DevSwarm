@@ -5,7 +5,7 @@ import { useStore } from "@/lib/store";
 import { StatusBadge } from "./AgentAvatar";
 import { ROOM_ICON } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { X, Search, Terminal, Database, MessageSquare, ListChecks, MapPin, ArrowRight, ArrowLeft, Cpu } from "lucide-react";
+import { X, Search, Terminal, Database, MessageSquare, ListChecks, MapPin, ArrowLeft, ArrowRight, LucideIcon, Cpu } from "lucide-react";
 
 export default function InspectorPanel() {
   const select = useStore((s) => s.select);
@@ -19,15 +19,15 @@ export default function InspectorPanel() {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 text-center space-y-4">
         <div className="w-16 h-16 rounded-full bg-surface-2 border border-edge flex items-center justify-center">
-            <Search className="w-6 h-6 text-secondary opacity-20" />
+          <Search className="w-6 h-6 text-secondary opacity-20" />
         </div>
         <div className="space-y-1">
-            <p className="text-[10px] font-heading font-bold text-secondary uppercase tracking-[.2em]">
-                Neural Inspector
-            </p>
-            <p className="text-[9px] text-secondary/50 uppercase tracking-widest">
-                Select an active node to probe
-            </p>
+          <p className="text-[10px] font-heading font-bold text-secondary uppercase tracking-[.2em]">
+            Neural Inspector
+          </p>
+          <p className="text-[9px] text-secondary/50 uppercase tracking-widest">
+            Select an active node to probe
+          </p>
         </div>
       </div>
     );
@@ -166,10 +166,10 @@ export default function InspectorPanel() {
                   <div
                     key={m.id}
                     className={cn(
-                        "p-4 rounded-xl border transition-all",
-                        outgoing
-                            ? "bg-accent/5 border-accent/20 ml-4"
-                            : "bg-surface-3 border-edge mr-4"
+                      "p-4 rounded-xl border transition-all",
+                      outgoing
+                        ? "bg-accent/5 border-accent/20 ml-4"
+                        : "bg-surface-3 border-edge mr-4"
                     )}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -184,7 +184,7 @@ export default function InspectorPanel() {
                       </span>
                     </div>
                     <p className="text-[10px] text-foreground/80 leading-relaxed italic">
-                      "{m.content}"
+                      &quot;{m.content}&quot;
                     </p>
                   </div>
                 );
@@ -205,7 +205,7 @@ function Section({
   children,
 }: {
   title: string;
-  icon: any;
+  icon: LucideIcon;
   children: React.ReactNode;
 }) {
   return (

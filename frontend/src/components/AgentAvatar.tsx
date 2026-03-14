@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import type { Agent, AgentStatus } from "@/lib/types";
 import { STATUS_THEME } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Activity, AlertTriangle, Coffee, Laptop, LogOut, Users } from "lucide-react";
+import { Activity, AlertTriangle, Coffee, Laptop, LogOut, Users, LucideIcon } from "lucide-react";
 
 interface Props {
   agent: Agent;
@@ -15,7 +15,7 @@ interface Props {
 
 const DIM = { sm: 56, md: 80, lg: 100 } as const;
 
-const STATUS_ICONS: Record<AgentStatus, any> = {
+const STATUS_ICONS: Record<AgentStatus, LucideIcon> = {
   Idle: Coffee,
   Working: Laptop,
   Meeting: Users,
@@ -109,7 +109,7 @@ export default function AgentAvatar({
       </div>
 
       {/* Status Indicator (Bottom Bar) */}
-      <div 
+      <div
         className="absolute bottom-0 left-0 right-0 h-1 transition-all"
         style={{ backgroundColor: t.dot }}
       />
@@ -124,13 +124,13 @@ export default function AgentAvatar({
       {/* Working task indicator */}
       {agent.currentTask && agent.status === "Working" && size !== "sm" && (
         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-full flex justify-center">
-            <motion.span
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-[7px] font-bold text-secondary uppercase tracking-tighter truncate max-w-[80px]"
-            >
-                {agent.currentTask}
-            </motion.span>
+          <motion.span
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-[7px] font-bold text-secondary uppercase tracking-tighter truncate max-w-[80px]"
+          >
+            {agent.currentTask}
+          </motion.span>
         </div>
       )}
     </motion.button>
@@ -173,7 +173,7 @@ export function StatusBadge({ status }: { status: AgentStatus }) {
     Error: "bg-err/10 text-err border-err/20",
     "Clocked Out": "bg-surface-2 text-secondary/50 border-edge/30",
   };
-  
+
   return (
     <span
       className={cn(

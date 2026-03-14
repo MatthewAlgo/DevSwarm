@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -28,6 +29,12 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	flag.Parse()
+	if testing.Short() {
+		fmt.Println("skipping integration tests in short mode")
+		os.Exit(0)
+	}
+
 	ctx := context.Background()
 
 	// Start Postgres Container

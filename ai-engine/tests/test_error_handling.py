@@ -1,12 +1,14 @@
 import pytest
+import jwt
+import os
+
 from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 from main import app
 
 client = TestClient(app)
 
-import jwt
-import os
+
 
 os.environ["JWT_SECRET"] = os.getenv("JWT_SECRET", "super_secret_devswarm_key_123")
 

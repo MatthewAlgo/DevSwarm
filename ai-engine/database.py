@@ -12,7 +12,7 @@ from typing import Any, Optional
 
 import httpx
 import jwt
-import redis_client
+
 
 logger = logging.getLogger("devswarm.database")
 

@@ -6,7 +6,7 @@ import { act } from "react";
 import { render, screen } from "@testing-library/react";
 import InspectorPanel from "@/components/InspectorPanel";
 import { useStore } from "@/lib/store";
-import { ALL_AGENTS, ALL_TASKS, ALL_MESSAGES, ORCHESTRATOR } from "../helpers/fixtures";
+import { ALL_AGENTS, ALL_TASKS, ALL_MESSAGES } from "../helpers/fixtures";
 
 beforeEach(() => {
     useStore.setState({

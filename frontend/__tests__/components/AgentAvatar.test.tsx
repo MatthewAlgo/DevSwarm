@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AgentAvatar, { AgentDot, StatusBadge } from "@/components/AgentAvatar";
-import { ORCHESTRATOR, RESEARCHER, DEVOPS, CLOCKED_OUT_AGENT } from "../helpers/fixtures";
+import { ORCHESTRATOR, RESEARCHER, DEVOPS } from "../helpers/fixtures";
 import type { AgentStatus } from "@/lib/types";
 
 /* ═══════════════════════════════════════════

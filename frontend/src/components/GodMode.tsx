@@ -7,10 +7,10 @@ import { api } from "@/lib/api";
 import { AgentDot, StatusBadge } from "./AgentAvatar";
 import KanbanBoard from "./KanbanBoard";
 import { cn } from "@/lib/utils";
-import { 
-  Zap, Shield, X, LayoutGrid, Kanban, DollarSign, Activity, 
+import {
+  Zap, Shield, X, LayoutGrid, Kanban, DollarSign, Activity,
   Terminal, Play, Clock, Coffee, Users, RotateCw, CheckCircle2,
-  ChevronRight, Cpu, Globe, Rocket, LogOut
+  ChevronRight, Cpu, Globe, Rocket, LogOut, LucideIcon, Search, Database, MessageSquare, ListChecks, MapPin, ArrowLeft, ArrowRight
 } from "lucide-react";
 
 export default function GodMode() {
@@ -85,7 +85,7 @@ export default function GodMode() {
           </div>
           <div className="flex flex-col">
             <h1 className="text-sm font-heading font-bold text-foreground tracking-[.3em] uppercase">
-                God_Mode
+              God_Mode
             </h1>
             <span className="text-[8px] text-accent font-bold uppercase tracking-widest animate-pulse">Root_Access_Granted</span>
           </div>
@@ -103,7 +103,7 @@ export default function GodMode() {
             return (
               <button
                 key={t.id}
-                onClick={() => setTab(t.id as any)}
+                onClick={() => setTab(t.id as "overview" | "kanban" | "costs")}
                 className={cn(
                   "flex items-center gap-2 px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all cursor-pointer",
                   active
@@ -168,16 +168,16 @@ export default function GodMode() {
                         </div>
                         <StatusBadge status={a.status} />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-[9px] text-secondary font-bold uppercase tracking-widest bg-surface-3 px-2 py-1 rounded border border-edge/50">
-                            <ChevronRight className="w-3 h-3 text-accent" />
-                            <span>Loc: {a.room}</span>
+                          <ChevronRight className="w-3 h-3 text-accent" />
+                          <span>Loc: {a.room}</span>
                         </div>
                         {a.currentTask && (
                           <div className="bg-black/20 rounded-lg p-3 border border-edge/30">
                             <p className="text-[9px] text-foreground/80 leading-relaxed font-medium italic line-clamp-2">
-                              "{a.currentTask}"
+                              &quot;{a.currentTask}&quot;
                             </p>
                           </div>
                         )}
@@ -193,7 +193,7 @@ export default function GodMode() {
                   <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                     <Terminal className="w-32 h-32" />
                   </div>
-                  
+
                   <div className="space-y-4 relative z-10">
                     <h4 className="text-[10px] font-heading font-bold text-secondary uppercase tracking-[.25em]">Inject_Directive</h4>
                     <div className="flex gap-3">
@@ -244,17 +244,17 @@ export default function GodMode() {
               {/* Connection Status */}
               <div className="p-6 bg-surface-2 rounded-2xl border border-edge shadow-xl space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-[10px] font-heading font-bold text-secondary uppercase tracking-widest">Link_Status</h3>
-                    <span className="text-[9px] font-mono text-secondary/50">v{version}</span>
+                  <h3 className="text-[10px] font-heading font-bold text-secondary uppercase tracking-widest">Link_Status</h3>
+                  <span className="text-[9px] font-mono text-secondary/50">v{version}</span>
                 </div>
                 <div className={cn(
-                    "flex items-center justify-between px-4 py-3 rounded-xl border transition-all",
-                    connected ? "bg-ok/5 border-ok/20 text-ok" : "bg-err/5 border-err/20 text-err"
+                  "flex items-center justify-between px-4 py-3 rounded-xl border transition-all",
+                  connected ? "bg-ok/5 border-ok/20 text-ok" : "bg-err/5 border-err/20 text-err"
                 )}>
                   <div className="flex items-center gap-3">
                     <div className={cn("w-2 h-2 rounded-full", connected ? "bg-ok animate-status-pulse" : "bg-err")} />
                     <span className="text-[10px] font-bold uppercase tracking-wider">
-                        {connected ? "NEURAL_LINK_ESTABLISHED" : "LINK_TERMINATED"}
+                      {connected ? "NEURAL_LINK_ESTABLISHED" : "LINK_TERMINATED"}
                     </span>
                   </div>
                   {connected && <CheckCircle2 className="w-4 h-4 opacity-50" />}
@@ -267,15 +267,15 @@ export default function GodMode() {
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
                   {log.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center opacity-20 space-y-2">
-                        <Terminal className="w-8 h-8" />
-                        <p className="text-[10px] font-bold uppercase tracking-widest">Awaiting Command Telemetry…</p>
+                      <Terminal className="w-8 h-8" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest">Awaiting Command Telemetry…</p>
                     </div>
                   ) : (
                     <div className="space-y-1.5">
                       {log.map((e, i) => (
                         <p key={i} className={cn(
-                            "text-[10px] leading-relaxed transition-colors",
-                            e.includes('❌') ? "text-err" : e.includes('✅') ? "text-ok" : "text-secondary group-hover:text-secondary/80"
+                          "text-[10px] leading-relaxed transition-colors",
+                          e.includes('❌') ? "text-err" : e.includes('✅') ? "text-ok" : "text-secondary group-hover:text-secondary/80"
                         )}>
                           <span className="opacity-30 mr-2">[{i.toString().padStart(2, '0')}]</span>
                           {e}
@@ -302,8 +302,8 @@ export default function GodMode() {
             <Section icon={DollarSign} title="Sovereign_Resource_Analysis">
               {costs.length === 0 ? (
                 <div className="h-64 rounded-2xl border border-dashed border-edge/50 flex flex-col items-center justify-center space-y-4 opacity-30">
-                    <DollarSign className="w-10 h-10" />
-                    <p className="text-[10px] font-bold uppercase tracking-widest">No Cost Data Telemetry Available</p>
+                  <DollarSign className="w-10 h-10" />
+                  <p className="text-[10px] font-bold uppercase tracking-widest">No Cost Data Telemetry Available</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -314,7 +314,7 @@ export default function GodMode() {
                     >
                       <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 rounded-lg bg-surface-3 border border-edge group-hover:bg-accent/10 group-hover:border-accent/30 transition-all">
-                            <Cpu className="w-4 h-4 text-secondary group-hover:text-accent" />
+                          <Cpu className="w-4 h-4 text-secondary group-hover:text-accent" />
                         </div>
                         <p className="text-xs font-heading font-bold text-foreground uppercase truncate">
                           {c.agentId}
@@ -354,7 +354,7 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  icon: any;
+  icon: LucideIcon;
   color: string;
 }) {
   return (
@@ -379,7 +379,7 @@ function Section({
   children,
 }: {
   title: string;
-  icon?: any;
+  icon?: LucideIcon;
   children: React.ReactNode;
 }) {
   return (
@@ -403,7 +403,7 @@ function QuickAction({
   onClick,
 }: {
   label: string;
-  icon: any;
+  icon: LucideIcon;
   color: string;
   onClick: () => void;
 }) {

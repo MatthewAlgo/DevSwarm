@@ -8,8 +8,6 @@ import { useStore } from "@/lib/store";
 import {
     ALL_AGENTS,
     ALL_TASKS,
-    TASK_BACKLOG,
-    TASK_IN_PROGRESS,
 } from "../helpers/fixtures";
 
 beforeEach(() => {
