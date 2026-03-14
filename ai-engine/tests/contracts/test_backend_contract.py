@@ -5,7 +5,15 @@ from tests.contracts.api_schema import AgentBase, Task, HealthCheckResponse
 
 # Base URL from env or default to localhost
 BACKEND_URL = os.getenv("BACKEND_TEST_URL", "http://localhost:8080")
-AUTH_HEADERS = {"Authorization": "Bearer devswarm-secret-key"}
+
+import jwt
+import time
+token = jwt.encode(
+    {"iss": "test", "aud": "backend", "exp": time.time() + 300},
+    os.getenv("JWT_SECRET", "super_secret_devswarm_key_123"),
+    algorithm="HS256"
+)
+AUTH_HEADERS = {"Authorization": f"Bearer {token}"}
 
 
 @pytest.mark.contract

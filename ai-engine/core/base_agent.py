@@ -94,10 +94,11 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
         state: OfficeState,
         parsed: TOutputSchema,
         context: AgentContext,
-    ) -> OfficeState:
+    ) -> dict:
         """
         Apply the parsed LLM output to the office state.
         This is where agent-specific logic lives (creating tasks, messages, etc).
+        Returns a dictionary of partial state updates.
         """
         ...
 
@@ -114,11 +115,31 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
             self._chain = self.build_chain()
         return self._chain
 
+    async def update_status(self, current_task: str = "", thought_chain: str = "", **kwargs) -> None:
+        """Helper to rapidly update agent state in database without passing agent_id."""
+        await self.context.update_agent(
+            self.agent_id,
+            current_task=current_task,
+            thought_chain=thought_chain,
+            **kwargs
+        )
+
+    async def broadcast_message(
+        self, to_agent: str, content: str, message_type: str = "chat"
+    ) -> None:
+        """Helper to rapidly dispatch a generic message or delegation."""
+        await self.context.create_message(
+            from_agent=self.agent_id,
+            to_agent=to_agent,
+            content=content,
+            message_type=message_type,
+        )
+
     async def process(
         self,
         state: OfficeState,
         context: Optional[AgentContext] = None,
-    ) -> OfficeState:
+    ) -> dict:
         """
         Full agent lifecycle:
         1. Set status to Working
@@ -127,7 +148,8 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
         4. Set status to Idle
         5. Log activity
 
-        On error: set status to Error, record in state, log.
+        Returns a dictionary of partial updates.
+        On error: set status to Error, record in state, log, and return {"error": e}.
         """
         ctx = context or self.context
         agent_logger = logging.getLogger(f"devswarm.agents.{self.agent_id}")
@@ -157,8 +179,8 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
             )
             agent_logger.info(f"{self.name} chain returned {type(parsed).__name__}")
 
-            # 4. Execute agent-specific logic
-            state = await self.execute(state, parsed, ctx)
+            # 4. Execute agent-specific logic and get updates
+            updates = await self.execute(state, parsed, ctx)
 
             # 5. Determine room transition
             # If the agent explicitly chose a target_room, move there.
@@ -197,7 +219,7 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
                 {"output_type": type(parsed).__name__, "room": final_room.value},
             )
 
-            return state
+            return updates
 
         except Exception as e:
             agent_logger.error(f"{self.name} error: {e}", exc_info=True)
@@ -216,8 +238,7 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
                 {"error": str(e)[:500]},
             )
 
-            state["error"] = str(e)
-            return state
+            return {"error": str(e)}
 
     def _build_chain_input(self, state: OfficeState, current_room: str = "Desks") -> dict[str, Any]:
         """Build the input dict for the chain from the current state."""
@@ -230,6 +251,7 @@ class BaseAgent(ABC, Generic[TOutputSchema]):
             "crawl_results": str(state.get("crawl_results", [])) or "None",
             "health_report": str(state.get("health_report", {})) or "None",
             "design_output": str(state.get("design_output", {})) or "None",
+            "test_results": str(state.get("test_results", {})) or "None",
             "current_room": current_room,
             "error": state.get("error", ""),
             "format_instructions": self.parser.get_format_instructions(),

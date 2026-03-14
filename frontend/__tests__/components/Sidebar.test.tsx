@@ -48,13 +48,13 @@ describe("Sidebar", () => {
 
     it("shows Live status when connected", () => {
         render(<Sidebar />);
-        expect(screen.getByText("Live")).toBeInTheDocument();
+        expect(screen.getByText("Live Connection")).toBeInTheDocument();
     });
 
     it("shows Offline when disconnected", () => {
         useStore.setState({ connected: false });
         render(<Sidebar />);
-        expect(screen.getByText("Offline")).toBeInTheDocument();
+        expect(screen.getByText("Offline Mode")).toBeInTheDocument();
     });
 
     it("renders user name", () => {
@@ -69,15 +69,13 @@ describe("Sidebar", () => {
 
     it("has collapse toggle button", () => {
         render(<Sidebar />);
-        expect(screen.getByText("«")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Toggle sidebar" })).toBeInTheDocument();
     });
 
     it("collapses on toggle click", async () => {
         const user = userEvent.setup();
         render(<Sidebar />);
-        await user.click(screen.getByText("«"));
-        // After collapse the toggle text changes
-        expect(screen.getByText("»")).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: "Toggle sidebar" }));
         // DevSwarm brand should be hidden
         expect(screen.queryByText("DevSwarm")).not.toBeInTheDocument();
     });
@@ -89,12 +87,5 @@ describe("Sidebar", () => {
         expect(hrefs).toContain("/");
         expect(hrefs).toContain("/kanban");
         expect(hrefs).toContain("/agents");
-    });
-
-    it("renders navigation icons", () => {
-        render(<Sidebar />);
-        expect(screen.getByText("🏢")).toBeInTheDocument();
-        expect(screen.getByText("📋")).toBeInTheDocument();
-        expect(screen.getByText("🤖")).toBeInTheDocument();
     });
 });

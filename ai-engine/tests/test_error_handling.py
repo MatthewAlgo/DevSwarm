@@ -5,8 +5,19 @@ from main import app
 
 client = TestClient(app)
 
+import jwt
+import os
+
+os.environ["JWT_SECRET"] = os.getenv("JWT_SECRET", "super_secret_devswarm_key_123")
+
+token = jwt.encode(
+    {"iss": "frontend", "role": "admin", "aud": "ai-engine"}, 
+    os.environ["JWT_SECRET"], 
+    algorithm="HS256"
+)
+
 # Authentication headers
-AUTH_HEADERS = {"Authorization": "Bearer devswarm-secret-key"}
+AUTH_HEADERS = {"Authorization": f"Bearer {token}"}
 
 
 def test_trigger_task_unauthorized():
@@ -54,11 +65,10 @@ async def test_database_connection_failure():
 @pytest.mark.asyncio
 async def test_trigger_redis_failure():
     """Test fallback when Redis enqueue fails."""
-    with patch("redis_client.enqueue_task", side_effect=Exception("Redis down")):
+    with patch("redis_client.enqueue_task", side_effect=ConnectionError("Redis down")):
         with patch("main._run_graph"):  # Mock the background task
             response = client.post(
                 "/api/trigger", json={"goal": "Test Goal"}, headers=AUTH_HEADERS
             )
-            assert response.status_code == 200
-            assert response.json()["status"] == "triggered"
-            # Should fall back to direct execution
+            assert response.status_code == 503
+            assert "Task queue is currently unavailable" in response.json()["detail"]

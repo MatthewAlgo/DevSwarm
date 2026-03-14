@@ -52,7 +52,7 @@ describe("InspectorPanel", () => {
 
     it("shows tech stack", () => {
         render(<InspectorPanel />);
-        expect(screen.getByText("LangGraph")).toBeInTheDocument();
+        expect(screen.getByText("LANGGRAPH")).toBeInTheDocument();
         expect(screen.getByText("MCP")).toBeInTheDocument();
     });
 
@@ -60,14 +60,14 @@ describe("InspectorPanel", () => {
         useStore.setState({ selectedId: null });
         render(<InspectorPanel />);
         expect(
-            screen.getByText(/Select an agent/i),
+            screen.getByText(/Select an active node to probe/i),
         ).toBeInTheDocument();
     });
 
     it("shows section headings", () => {
         render(<InspectorPanel />);
-        expect(screen.getByText("Current Task")).toBeInTheDocument();
-        expect(screen.getByText("Tech Stack")).toBeInTheDocument();
+        expect(screen.getByText("Current Process")).toBeInTheDocument();
+        expect(screen.getByText("System Capabilities")).toBeInTheDocument();
     });
 
     it("switches details when selected agent changes", () => {

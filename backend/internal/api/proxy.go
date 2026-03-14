@@ -6,6 +6,9 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // ProxyToPython forwards requests to the AI Engine.
@@ -28,6 +31,19 @@ func (h *Handler) ProxyToPython(w http.ResponseWriter, r *http.Request) {
 	r.URL.Scheme = target.Scheme
 	r.Header.Set("X-Forwarded-Host", r.Header.Get("Host"))
 	r.Host = target.Host
+
+	// Create an internal JWT for service-to-service communication
+	secret := os.Getenv("JWT_SECRET")
+	if secret != "" {
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"iss": "backend",
+			"aud": "ai-engine",
+			"exp": time.Now().Add(5 * time.Minute).Unix(),
+		})
+		if tokenString, err := token.SignedString([]byte(secret)); err == nil {
+			r.Header.Set("Authorization", "Bearer "+tokenString)
+		}
+	}
 
 	// Strip the prefix if the python app is mounted at root but validation logic might be needed.
 	// For now, we assume Python mounts at /api/... as well, so no path rewriting needed

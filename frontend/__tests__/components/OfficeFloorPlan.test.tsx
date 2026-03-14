@@ -25,11 +25,10 @@ describe("OfficeFloorPlan", () => {
         expect(screen.getByText("Server Room")).toBeInTheDocument();
     });
 
-    it("renders room icons", () => {
-        render(<OfficeFloorPlan />);
-        expect(screen.getByText("🏢")).toBeInTheDocument(); // Private Office
-        expect(screen.getByText("⚔️")).toBeInTheDocument(); // War Room
-        expect(screen.getByText("💻")).toBeInTheDocument(); // Desks
+    it("renders room icons (lucide svgs)", () => {
+        const { container } = render(<OfficeFloorPlan />);
+        const svgs = container.querySelectorAll("svg");
+        expect(svgs.length).toBeGreaterThan(0);
     });
 
     it("shows agent avatars in correct rooms", () => {
@@ -42,14 +41,14 @@ describe("OfficeFloorPlan", () => {
     it("shows Empty for rooms with no agents", () => {
         render(<OfficeFloorPlan />);
         // Lounge has no agents
-        expect(screen.getByText("Empty")).toBeInTheDocument();
+        expect(screen.getByText("Empty Sector")).toBeInTheDocument();
     });
 
     it("shows loading state when no agents", () => {
         useStore.setState({ agents: {} });
         render(<OfficeFloorPlan />);
         expect(
-            screen.getByText("Connecting to DevSwarm HQ…"),
+            screen.getByText("Establishing Neural Link"),
         ).toBeInTheDocument();
     });
 

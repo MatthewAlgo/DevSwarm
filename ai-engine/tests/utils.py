@@ -23,7 +23,7 @@ def probabilistic(trials=5, threshold=0.6):
                     else:
                         test_func(*args, **kwargs)
                     successes += 1
-                except Exception as e:
+                except (RuntimeError, ValueError, KeyError, TypeError, ConnectionError, AssertionError) as e:
                     last_error = e
 
             rate = successes / trials

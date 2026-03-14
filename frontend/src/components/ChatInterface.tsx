@@ -4,6 +4,9 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { normalizeMessage } from "@/lib/types";
 import { useStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
+import { Send, Bot, User, Cpu, Loader2, Wifi, MessageSquare } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Message {
   id: string;
@@ -20,11 +23,11 @@ interface AgentMeta {
   avatarColor: string;
 }
 
-const DEFAULT_AGENT_COLOR = "#525252";
+const DEFAULT_AGENT_COLOR = "#94a3b8";
 const SYSTEM_AGENT: AgentMeta = {
   name: "System",
   initials: "S",
-  avatarColor: "#6b7280",
+  avatarColor: "#3b82f6",
 };
 
 export function ChatInterface() {
@@ -32,7 +35,7 @@ export function ChatInterface() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const agents = useStore((s) => s.agents);
+  const { agents, connected } = useStore();
 
   const agentMeta = useMemo(() => {
     const data: Record<string, AgentMeta> = {
@@ -71,7 +74,7 @@ export function ChatInterface() {
     };
 
     fetchMessages();
-    const interval = setInterval(fetchMessages, 2000);
+    const interval = setInterval(fetchMessages, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -96,7 +99,6 @@ export function ChatInterface() {
           messageType: "chat",
         });
       } catch (err) {
-        // Persisting chat history is best-effort; goal triggering is the critical path.
         console.warn("Failed to persist chat message", err);
       }
 
@@ -109,176 +111,183 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a] text-neutral-200 font-sans relative">
-      <div className="absolute top-4 right-6 z-10 flex items-center gap-2 bg-neutral-900/80 backdrop-blur px-3 py-1.5 rounded-full border border-white/5 shadow-lg">
-        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-        <span className="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">
-          System Online
-        </span>
+    <div className="flex flex-col h-full bg-background text-foreground relative overflow-hidden font-sans">
+      {/* ── Background Patterns ── */}
+      <div className="absolute inset-0 pointer-events-none opacity-5">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,var(--color-accent)_0%,transparent_70%)]" />
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent">
-        {messages.length === 0 && (
-          <div
-            className="h-full flex flex-col items-center justify-center text-neutral-500 space-y-4 opacity-0 animate-fadeIn"
-            style={{ animationFillMode: "forwards" }}
-          >
-            <div className="w-16 h-16 rounded-2xl bg-neutral-800/50 flex items-center justify-center text-3xl mb-2">
-              👋
-            </div>
-            <p className="text-sm font-medium">No messages yet.</p>
-            <p className="text-xs max-w-xs text-center leading-relaxed text-neutral-600">
-              Start by saying hello or assigning a task to the Orchestrator.
-            </p>
-          </div>
-        )}
+      {/* ── Status Header ── */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20">
+        <div className={cn(
+            "flex items-center gap-3 px-4 py-2 rounded-full border backdrop-blur-md shadow-2xl transition-all duration-500",
+            connected ? "bg-ok/5 border-ok/20 text-ok" : "bg-err/5 border-err/20 text-err"
+        )}>
+          <Wifi className={cn("w-3.5 h-3.5", connected && "animate-pulse")} />
+          <span className="text-[10px] font-heading font-bold uppercase tracking-[.2em]">
+            {connected ? "Neural Link Active" : "Link Disconnected"}
+          </span>
+        </div>
+      </div>
 
-        {messages.map((msg, idx) => {
-          const isUser = msg.from === "user";
-          const showAvatar = idx === 0 || messages[idx - 1].from !== msg.from;
-          const meta =
-            agentMeta[msg.from] || createFallbackAgentMeta(msg.from || "unknown");
-
-          return (
-            <div
-              key={msg.id}
-              className={`flex items-end gap-3 ${isUser ? "justify-end" : "justify-start"} group animate-slideUp`}
+      {/* ── Messages Area ── */}
+      <div className="flex-1 overflow-y-auto p-6 sm:p-10 space-y-8 custom-scrollbar relative z-10">
+        <AnimatePresence initial={false}>
+          {messages.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="h-full flex flex-col items-center justify-center text-center space-y-6"
             >
-              {!isUser && (
-                <div
-                  className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs text-white ${showAvatar ? "shadow-md" : "opacity-0"}`}
-                  style={{ background: meta.avatarColor }}
-                >
-                  {showAvatar ? meta.initials : ""}
-                </div>
-              )}
-
-              <div
-                className={`max-w-[85%] sm:max-w-[70%] px-5 py-3.5 shadow-sm text-[13px] leading-relaxed relative ${isUser
-                  ? "bg-violet-600 text-white rounded-2xl rounded-tr-sm"
-                  : "bg-neutral-800 text-neutral-200 rounded-2xl rounded-tl-sm border border-neutral-700/50"
-                  }`}
-              >
-                {!isUser && showAvatar && (
-                  <span
-                    className="block text-[10px] font-bold mb-1 tracking-wide uppercase"
-                    style={{ color: meta.avatarColor }}
-                  >
-                    {meta.name}
-                  </span>
-                )}
-                <p className="whitespace-pre-wrap">{msg.content}</p>
-                <span
-                  className={`text-[9px] absolute bottom-1 right-3 opacity-0 group-hover:opacity-60 transition-opacity ${isUser ? "text-violet-200" : "text-neutral-500"}`}
-                >
-                  {new Date(msg.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+              <div className="w-20 h-20 rounded-3xl bg-surface-2 border border-edge flex items-center justify-center shadow-2xl relative">
+                <div className="absolute inset-0 bg-accent/10 rounded-3xl animate-ping opacity-20" />
+                <Bot className="w-10 h-10 text-accent" />
               </div>
+              <div className="space-y-2">
+                <h3 className="text-sm font-heading font-bold uppercase tracking-widest">Awaiting Directives</h3>
+                <p className="text-[11px] text-secondary max-w-[240px] uppercase tracking-tighter leading-relaxed">
+                  Interface ready for swarm coordination. Assign a task to the orchestrator to begin.
+                </p>
+              </div>
+            </motion.div>
+          ) : (
+            messages.map((msg, idx) => {
+              const isUser = msg.from === "user";
+              const showAvatar = idx === 0 || messages[idx - 1].from !== msg.from;
+              const meta = agentMeta[msg.from] || createFallbackAgentMeta(msg.from || "unknown");
 
-              {isUser && (
-                <div
-                  className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs bg-neutral-700 text-neutral-300 ${showAvatar ? "opacity-100" : "opacity-0"}`}
+              return (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, x: isUser ? 20 : -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={cn(
+                    "flex items-start gap-4 group",
+                    isUser ? "flex-row-reverse" : "flex-row"
+                  )}
                 >
-                  U
-                </div>
-              )}
-            </div>
-          );
-        })}
+                  {/* Avatar */}
+                  <div className="shrink-0 mt-1 relative">
+                    {showAvatar ? (
+                      <div 
+                        className={cn(
+                            "w-9 h-9 rounded-xl flex items-center justify-center border shadow-lg transition-all group-hover:scale-110",
+                            isUser ? "bg-surface-3 border-edge" : "bg-surface-2"
+                        )}
+                        style={{ borderColor: isUser ? undefined : `${meta.avatarColor}40`, backgroundColor: isUser ? undefined : `${meta.avatarColor}10` }}
+                      >
+                        {isUser ? <User className="w-4 h-4 text-accent" /> : (
+                            <span className="text-xs font-heading font-bold" style={{ color: meta.avatarColor }}>
+                                {meta.initials}
+                            </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="w-9 h-0" />
+                    )}
+                  </div>
+
+                  {/* Bubble */}
+                  <div className={cn("flex flex-col space-y-1.5 max-w-[80%] sm:max-w-[65%]", isUser ? "items-end" : "items-start")}>
+                    {showAvatar && !isUser && (
+                        <div className="flex items-center gap-2 px-1">
+                            <span className="text-[9px] font-heading font-bold uppercase tracking-widest" style={{ color: meta.avatarColor }}>
+                                {meta.name}
+                            </span>
+                            <div className="w-1 h-1 rounded-full bg-edge" />
+                            <span className="text-[8px] font-bold text-secondary uppercase tracking-tighter">
+                                {msg.type}
+                            </span>
+                        </div>
+                    )}
+                    
+                    <div className={cn(
+                        "relative px-5 py-3.5 rounded-2xl text-[13px] leading-relaxed transition-all shadow-sm group-hover:shadow-md border",
+                        isUser 
+                            ? "bg-accent border-accent/20 text-white rounded-tr-none" 
+                            : "bg-surface-2 border-edge text-foreground/90 rounded-tl-none"
+                    )}>
+                      <p className="whitespace-pre-wrap selection:bg-white/20">{msg.content}</p>
+                      
+                      <div className={cn(
+                        "absolute top-0 w-2 h-2",
+                        isUser ? "-right-2 bg-accent [clip-path:polygon(0_0,0_100%,100%_0)]" : "-left-2 bg-surface-2 [clip-path:polygon(100%_0,100%_100%,0_0)]"
+                      )} />
+                    </div>
+
+                    <div className={cn("px-2 flex items-center gap-2 text-[9px] font-bold text-secondary uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity")}>
+                        <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                        {isUser && <span className="text-accent">✓ Delivered</span>}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })
+          )}
+        </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 sm:p-6 bg-neutral-900/80 backdrop-blur-xl border-t border-white/5">
-        <form
-          onSubmit={handleSubmit}
-          className="relative max-w-4xl mx-auto flex items-end gap-2 bg-neutral-800/50 p-1.5 rounded-3xl border border-neutral-700 focus-within:border-violet-500/50 focus-within:ring-4 focus-within:ring-violet-500/10 transition-all"
-        >
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your command..."
-            className="flex-1 bg-transparent text-sm text-white placeholder-neutral-500 px-5 py-3.5 focus:outline-none min-w-0"
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isLoading}
-            className={`p-3 rounded-full transition-all duration-200 flex-shrink-0 ${!input.trim() || isLoading
-              ? "bg-neutral-700 text-neutral-500 cursor-not-allowed opacity-50"
-              : "bg-violet-600 text-white hover:bg-violet-500 shadow-lg shadow-violet-600/20 transform hover:scale-105 active:scale-95"
-              }`}
+      {/* ── Input Area ── */}
+      <div className="p-6 sm:p-10 relative z-20">
+        <div className="max-w-4xl mx-auto relative group">
+          <div className="absolute -inset-[1px] bg-gradient-to-r from-accent/50 to-violet-500/50 rounded-[2rem] blur-sm opacity-20 group-focus-within:opacity-40 transition-opacity" />
+          
+          <form
+            onSubmit={handleSubmit}
+            className="relative flex items-center gap-2 bg-surface-2/80 backdrop-blur-xl p-2 rounded-[2rem] border border-edge shadow-2xl focus-within:border-accent/50 transition-all"
           >
-            {isLoading ? (
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                  fill="none"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-            ) : (
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="22" y1="2" x2="11" y2="13"></line>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-              </svg>
-            )}
-          </button>
-        </form>
-        <p className="text-center text-neutral-600 text-[10px] mt-3 uppercase tracking-widest font-medium">
-          DevSwarm Orchestration Layer
-        </p>
+            <div className="pl-4 shrink-0">
+                <Cpu className={cn("w-5 h-5 transition-colors", isLoading ? "text-accent animate-spin" : "text-secondary")} />
+            </div>
+            
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Inject Swarm Directives..."
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-secondary/50 px-3 py-4 focus:outline-none min-w-0 font-medium"
+              disabled={isLoading}
+            />
+            
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className={cn(
+                "group relative w-12 h-12 flex items-center justify-center rounded-full transition-all duration-300 overflow-hidden cursor-pointer",
+                !input.trim() || isLoading
+                  ? "bg-surface-3 text-secondary/30 cursor-not-allowed"
+                  : "bg-accent text-white shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:scale-105 active:scale-95"
+              )}
+            >
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                    <Send className="w-5 h-5 relative z-10 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-accent to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </>
+              )}
+            </button>
+          </form>
+          
+          <div className="flex items-center justify-between mt-4 px-6">
+            <div className="flex items-center gap-4 text-[9px] font-heading font-bold text-secondary uppercase tracking-[.2em]">
+                <div className="flex items-center gap-1.5">
+                    <div className="w-1 h-1 rounded-full bg-accent" />
+                    <span>Llm_Model: GPT-4o</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <div className="w-1 h-1 rounded-full bg-accent" />
+                    <span>Swarm_Nodes: {Object.keys(agents).length}</span>
+                </div>
+            </div>
+            <span className="text-[9px] font-mono font-bold text-secondary/40 uppercase tracking-tighter">
+              Secured_Neural_Link // AES-256
+            </span>
+          </div>
+        </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.4s ease-out forwards;
-        }
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 }

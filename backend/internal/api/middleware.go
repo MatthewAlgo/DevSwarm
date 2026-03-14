@@ -3,9 +3,14 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 // JSONContentType sets the Content-Type header to application/json.
@@ -25,8 +30,7 @@ func RequestLogger(next http.Handler) http.Handler {
 	})
 }
 
-// AuthMiddleware enforces Bearer token authentication.
-// It checks for the Authorization header and validates the token against the API_KEY env var.
+// AuthMiddleware enforces JWT Bearer token authentication.
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Skip auth for health check
@@ -35,12 +39,28 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		token := r.Header.Get("Authorization")
-		// Simple static token for now (MVP)
-		// In production, use a secure comparison or JWT validation
-		expected := "Bearer devswarm-secret-key"
+		secret := os.Getenv("JWT_SECRET")
+		if secret == "" {
+			log.Println("[Auth] JWT_SECRET is not set")
+			http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
+			return
+		}
 
-		if token != expected {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+			http.Error(w, `{"error": "Unauthorized"}`, http.StatusUnauthorized)
+			return
+		}
+
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
+			return []byte(secret), nil
+		})
+
+		if err != nil || !token.Valid {
 			http.Error(w, `{"error": "Unauthorized"}`, http.StatusUnauthorized)
 			return
 		}

@@ -75,7 +75,7 @@ async def lifespan(app: FastAPI):
             db=db,
         )
         worker_task = asyncio.create_task(_task_queue_worker())
-    except Exception as e:
+    except (ImportError, ConnectionError) as e:
         logger.warning(f"Redis initialization failed (non-fatal): {e}")
 
     dispatcher_task = asyncio.create_task(_dispatcher.run_forever())
@@ -100,7 +100,7 @@ async def lifespan(app: FastAPI):
         import redis_client
 
         await redis_client.close_redis()
-    except Exception:
+    except (ImportError, ConnectionError):
         pass
 
     await db.close_pool()
@@ -119,6 +119,8 @@ _background_tasks: set[asyncio.Task] = set()
 
 # --- App ---
 
+from prometheus_fastapi_instrumentator import Instrumentator
+
 app = FastAPI(
     title="DevSwarm AI Engine",
     description="Cognitive orchestration engine for the DevSwarm multi-agent virtual office",
@@ -126,22 +128,35 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Instrument Prometheus
+Instrumentator().instrument(app).expose(app)
+
 
 @app.middleware("http")
 async def auth_middleware(request, call_next):
     """Enforce Bearer token authentication."""
-    # Skip auth for health check and docs
-    if request.url.path in ["/health", "/docs", "/openapi.json"]:
+    # Skip auth for health check, docs, and metrics
+    if request.url.path in ["/health", "/docs", "/openapi.json", "/metrics"]:
         return await call_next(request)
 
-    # Simple static token for now (MVP)
-    expected_token = "Bearer devswarm-secret-key"
+    from fastapi.responses import JSONResponse
+    import jwt
+    import os
+
+    secret = os.getenv("JWT_SECRET")
+    if not secret:
+        logger.error("JWT_SECRET is not set")
+        return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
     auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
 
-    if auth_header != expected_token:
-        # Return 401 Unauthorized
-        from fastapi.responses import JSONResponse
-
+    token = auth_header[7:]
+    try:
+        jwt.decode(token, secret, algorithms=["HS256"], audience="ai-engine")
+    except jwt.InvalidTokenError as e:
+        logger.warning(f"Invalid token: {e}")
         return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
 
     response = await call_next(request)
@@ -317,17 +332,13 @@ async def trigger_task(req: TriggerTaskRequest):
                 assigned_to=req.assigned_to,
             )
             return {"status": "queued", "goal": req.goal, "queue_id": msg_id}
-        except Exception as redis_err:
-            logger.warning(
-                f"Redis enqueue failed, falling back to direct execution: {redis_err}"
+        except (ImportError, ConnectionError) as redis_err:
+            logger.error(f"Redis enqueue failed, task queue unavailable: {redis_err}")
+            raise HTTPException(
+                status_code=503, 
+                detail="Task queue is currently unavailable. Please try again later."
             )
-            # Fallback: direct execution with strong reference to prevent GC
-            initial_state = create_initial_state(req.goal)
-            task = asyncio.create_task(_run_graph(initial_state, req.goal))
-            _background_tasks.add(task)
-            task.add_done_callback(_background_tasks.discard)
-            return {"status": "triggered", "goal": req.goal}
-    except Exception as e:
+    except (ValueError, KeyError, TypeError) as e:
         logger.error(f"Trigger error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 

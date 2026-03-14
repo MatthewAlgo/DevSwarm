@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Protocol
 
+import httpx
 from core.state import OfficeState
 
 logger = logging.getLogger("devswarm.services.graph_execution")
@@ -57,7 +58,7 @@ class GraphExecutionService:
                     "delegated": result.get("delegated_agents", []),
                 },
             )
-        except Exception as exc:
+        except (httpx.RequestError, RuntimeError, ValueError, KeyError, TypeError) as exc:
             logger.error("Graph execution error: %s", exc)
             await self._db.log_activity(
                 "system",

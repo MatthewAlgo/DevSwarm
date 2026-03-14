@@ -33,42 +33,42 @@ beforeEach(() => {
 describe("GodMode", () => {
     it("renders only when godMode is true", () => {
         render(<GodMode />);
-        expect(screen.getByText("God Mode")).toBeInTheDocument();
+        expect(screen.getByText("God_Mode")).toBeInTheDocument();
     });
 
     it("still renders when godMode is false (parent controls visibility)", () => {
         useStore.setState({ godMode: false });
         render(<GodMode />);
         // GodMode component itself always renders; parent layout gates visibility
-        expect(screen.getByText("God Mode")).toBeInTheDocument();
+        expect(screen.getByText("God_Mode")).toBeInTheDocument();
     });
 
     it("shows agent stat card", () => {
         render(<GodMode />);
         // Should show agent count (4 from fixtures)
-        expect(screen.getByText("Agents")).toBeInTheDocument();
+        expect(screen.getByText("Total_Nodes")).toBeInTheDocument();
     });
 
     it("shows task stat card", () => {
         render(<GodMode />);
-        expect(screen.getByText("Tasks")).toBeInTheDocument();
+        expect(screen.getByText("Queued_Directives")).toBeInTheDocument();
     });
 
     it("shows message stat card", () => {
         render(<GodMode />);
-        expect(screen.getByText("Messages")).toBeInTheDocument();
+        expect(screen.getByText("Neural_Transmissions")).toBeInTheDocument();
     });
 
     it("shows goal input field", () => {
         render(<GodMode />);
-        const input = screen.getByPlaceholderText(/goal/i);
+        const input = screen.getByPlaceholderText(/Awaiting swarm instructions/i);
         expect(input).toBeInTheDocument();
     });
 
     it("has trigger button", () => {
         render(<GodMode />);
         expect(
-            screen.getByRole("button", { name: /trigger/i }),
+            screen.getByRole("button", { name: /execute/i }),
         ).toBeInTheDocument();
     });
 

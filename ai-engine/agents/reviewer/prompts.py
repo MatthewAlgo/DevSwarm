@@ -23,8 +23,9 @@ HUMAN_PROMPT = """
 Current goal: {current_goal}
 Current task: {active_tasks}
 Code to review: {content_drafts}
+Latest test results: {test_results}
 
-Review the submitted code changes and provide structured feedback."""
+Review the submitted code changes and test execution logs (if any). If tests failed (exit code != 0) or the code has major issues, loop back to the developer with a thorough review."""
 
 PROMPT = ChatPromptTemplate.from_messages(
     [

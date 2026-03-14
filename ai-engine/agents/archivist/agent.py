@@ -36,23 +36,20 @@ class ArchivistAgent(BaseAgent[ArchivistKBOutput]):
         state: OfficeState,
         parsed: ArchivistKBOutput,
         context: AgentContext,
-    ) -> OfficeState:
+    ) -> dict:
         """Organize knowledge and notify Orchestrator."""
-        await context.update_agent(
-            self.agent_id,
+        await self.update_status(
             current_task="Organizing knowledge base",
             thought_chain=f"Organizing {parsed.entries_organized} entries. {parsed.summary}",
         )
 
-        await context.create_message(
-            from_agent=self.agent_id,
+        await self.broadcast_message(
             to_agent="orchestrator",
             content=f"Knowledge base updated: {parsed.entries_organized} new entries archived and categorized.",
             message_type="kb_update",
         )
 
-        state["kb_entries_organized"] = parsed.entries_organized
-        return state
+        return {"kb_entries_organized": parsed.entries_organized}
 
 
 agent = ArchivistAgent()

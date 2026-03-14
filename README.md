@@ -95,7 +95,72 @@ flowchart TD
     STORE --> UI["Dashboard / God Mode / Kanban / Activity"]
 ```
 
-## 4. Repository Layout
+## 4. LangChain & LangGraph Orchestration Schema
+
+The DevSwarm AI Engine utilizes **LangGraph** (an extension of LangChain) to model the multi-agent orchestration as a cyclic StateGraph. This architecture represents the core workflow of the "virtual office", allowing agents to act as specialized nodes that process a shared `OfficeState` containing the current request, context, gathered research, and errors. 
+
+### State Graph Schema
+
+```mermaid
+stateDiagram-v2
+    direction TB
+    [*] --> Orchestrator
+    
+    Orchestrator --> Crawler : Delegates
+    Orchestrator --> Researcher : Delegates
+    Orchestrator --> ViralEngineer : Delegates
+    Orchestrator --> Comms : Delegates
+    Orchestrator --> DevOps : Delegates
+    Orchestrator --> FrontendDesigner : Delegates
+    Orchestrator --> Developer : Delegates
+    Orchestrator --> Archivist : Delegates
+    Orchestrator --> [*] : No Delegation (Idle)
+
+    %% Research Flow
+    Researcher --> ViralEngineer : found research
+    Researcher --> Archivist : nothing to publish
+    ViralEngineer --> Archivist
+
+    %% Crawl Flow
+    Crawler --> Archivist
+
+    %% Dev Loop
+    Developer --> Reviewer
+    Reviewer --> Developer : Review failed (loop)
+    Reviewer --> Archivist : Review passed
+
+    %% Comms & Archivist Paths
+    Comms --> DevOps : error detected
+    Comms --> [*] : success
+    Archivist --> DevOps : error detected
+    Archivist --> [*] : success
+    
+    %% Terminations
+    FrontendDesigner --> [*]
+    DevOps --> [*]
+
+    %% Note for clarity
+    note right of Orchestrator
+      The Orchestrator evaluates the 
+      goal and selects the appropriate 
+      specialist node.
+    end note
+```
+
+### Deep Dive: LangGraph Structure
+
+The `OfficeState` is passed from node to node as a mutable dictionary. When an agent node executes, it performs its LangChain `ReAct` logic (invoking specific MCP tools corresponding to its role) and subsequently updates the state.
+
+1.  **Entry Point (`Orchestrator`)**: 
+    The graph entry point is always the `Orchestrator`. It evaluates high-level goals from the backlog or user triggers, and populates the `delegated_agents` field in the state. From here, a conditional edge dynamically routes to the chosen specialist.
+2.  **Specialist Execution Flows**:
+    -   **Development Loop**: The `Developer` creates code and passes execution to the `Reviewer`. The `Reviewer` node checks the generated work. If validation fails, a conditional edge loops execution *back* to the `Developer` with the error appended to the state. If successful, it proceeds to the `Archivist`.
+    -   **Content Flow**: The `Researcher` utilizes MCP search tools to build a knowledge context. Its output routes conditionally: if publishable findings are generated, the state flows to the `ViralEngineer` for content drafting. Otherwise, the findings are directly saved by the `Archivist`.
+    -   **Error Handling Escalation**: Both the `Comms` and `Archivist` nodes possess conditional routing that checks the shared state for generic anomalies (`state.get("error")`). If an error is detected during their execution, they escalate state control to the `DevOps` node rather than terminating. 
+3.  **State Finalization (`Archivist` / `DevOps`)**:
+    Most workflows converge on the `Archivist` class to write changes back to the knowledge base (simulating documentation and status finalization). The graph exits (`__end__`) when operations resolve successfully or when the `DevOps` node concludes its health recovery flow. 
+
+## 5. Repository Layout
 ```text
 /Users/matthew/Projects/DevSwarm
 ├── frontend/               # Next.js dashboard and client-side state

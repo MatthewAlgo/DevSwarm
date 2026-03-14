@@ -19,8 +19,8 @@ export default function DashboardLayout({
     /* auth gate — AuthProvider handles redirect, but we also prevent flash */
     if (loading || !user) {
         return (
-            <div className="h-dvh flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-violet-600/30 border-t-violet-600 rounded-full animate-spin" />
+            <div className="h-dvh flex items-center justify-center bg-background">
+                <div className="w-10 h-10 border-2 border-accent/20 border-t-accent rounded-full animate-spin" />
             </div>
         );
     }

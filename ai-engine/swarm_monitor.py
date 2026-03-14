@@ -51,7 +51,7 @@ async def fetch_state():
             response = await client.get(f"{API_ENDPOINT}/api/state", headers=AUTH_HEADERS)
             if response.status_code == 200:
                 return response.json()
-        except Exception as e:
+        except (httpx.RequestError, RuntimeError, ValueError) as e:
             print(f"{Colors.FAIL}Error fetching state: {e}{Colors.ENDC}")
     return None
 
@@ -61,7 +61,7 @@ async def fetch_messages(limit=10):
             response = await client.get(f"{API_ENDPOINT}/api/messages?limit={limit}", headers=AUTH_HEADERS)
             if response.status_code == 200:
                 return response.json()
-        except Exception as e:
+        except (httpx.RequestError, RuntimeError, ValueError) as e:
             print(f"{Colors.FAIL}Error fetching messages: {e}{Colors.ENDC}")
     return []
 

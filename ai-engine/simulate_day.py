@@ -38,7 +38,7 @@ async def mutate_global_state(status: str, room: str, message: str = "") -> None
                 logger.info(f"Successfully broadcasted global state: {status}")
             else:
                 logger.warning(f"State override response: {response.status_code}")
-        except Exception as e:
+        except (httpx.RequestError, RuntimeError, ValueError, KeyError, TypeError) as e:
             logger.error(f"Failed to mutate state: {e}")
 
 
@@ -52,7 +52,7 @@ async def trigger_agent_task(agent_id: str, task: str) -> None:
             )
             if response.status_code == 200:
                 logger.info(f"Triggered {agent_id}: {task}")
-        except Exception as e:
+        except (httpx.RequestError, RuntimeError, ValueError, KeyError, TypeError) as e:
             logger.error(f"Failed to trigger {agent_id}: {e}")
 
 

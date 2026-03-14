@@ -3,7 +3,20 @@ from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
 from main import app
 
+import os
+import time
+import jwt
+
+os.environ["JWT_SECRET"] = os.getenv("JWT_SECRET", "test_secret_key")
+
 client = TestClient(app)
+
+token = jwt.encode(
+    {"iss": "backend", "aud": "ai-engine", "exp": time.time() + 300},
+    os.environ["JWT_SECRET"],
+    algorithm="HS256"
+)
+AUTH_HEADERS = {"Authorization": f"Bearer {token}"}
 
 
 @pytest.mark.asyncio
@@ -30,7 +43,7 @@ async def test_list_agents_serialization():
         mock_get.return_value = mock_agents
 
         response = client.get(
-            "/api/agents", headers={"Authorization": "Bearer devswarm-secret-key"}
+            "/api/agents", headers=AUTH_HEADERS
         )
 
         assert response.status_code == 200

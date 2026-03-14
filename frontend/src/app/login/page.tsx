@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { Shield, Lock, Mail, ArrowRight, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
     const { login } = useAuth();
@@ -16,136 +18,145 @@ export default function LoginPage() {
         setLoading(true);
         const ok = await login(email, password);
         if (!ok) {
-            setError("Invalid credentials. Try admin@devswarm.io / admin");
+            setError("AUTHENTICATION_FAILED: INVALID_CREDENTIALS");
         }
         setLoading(false);
     };
 
     return (
-        <div className="min-h-dvh flex items-center justify-center relative overflow-hidden">
+        <div className="min-h-dvh flex items-center justify-center relative overflow-hidden bg-background font-sans">
             {/* ── Background ── */}
             <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-950/40 via-[#050505] to-indigo-950/30" />
-                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-violet-600/8 blur-3xl" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600/6 blur-3xl" />
-                {/* Grid lines */}
+                <div className="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] rounded-full bg-accent/5 blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-violet-500/5 blur-[100px]" />
+                
+                {/* Subtle Scanlines */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-[length:100%_4px] pointer-events-none opacity-20" />
+                
+                {/* Grid */}
                 <div
-                    className="absolute inset-0 opacity-[.04]"
+                    className="absolute inset-0 opacity-[.03]"
                     style={{
                         backgroundImage:
-                            "linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)",
-                        backgroundSize: "60px 60px",
+                            "linear-gradient(var(--color-edge) 1px, transparent 1px), linear-gradient(90deg, var(--color-edge) 1px, transparent 1px)",
+                        backgroundSize: "40px 40px",
                     }}
                 />
             </div>
 
-            {/* ── Card ── */}
-            <div className="relative w-full max-w-md mx-4">
-                <div className="glass border border-neutral-800/60 rounded-3xl p-8 shadow-2xl shadow-violet-900/10">
-                    {/* Logo */}
-                    <div className="flex flex-col items-center mb-8">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 via-indigo-600 to-fuchsia-600 flex items-center justify-center shadow-xl shadow-violet-600/30 mb-4">
-                            <svg
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <path d="M12 2 L2 7 L12 12 L22 7 Z" />
-                                <path d="M2 17 L12 22 L22 17" />
-                                <path d="M2 12 L12 17 L22 12" />
-                            </svg>
+            {/* ── Login Card ── */}
+            <div className="relative w-full max-w-md mx-4 group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-accent/20 to-violet-500/20 rounded-[2.5rem] blur opacity-25 group-hover:opacity-40 transition-opacity" />
+                
+                <div className="relative bg-surface-2/80 backdrop-blur-2xl border border-edge rounded-[2rem] p-10 shadow-2xl">
+                    {/* Logo Section */}
+                    <div className="flex flex-col items-center mb-10 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.4)] mb-6 relative">
+                            <Shield className="w-8 h-8 text-white relative z-10" />
+                            <div className="absolute inset-0 bg-white/20 rounded-2xl animate-pulse" />
                         </div>
-                        <h1 className="text-lg font-bold tracking-[.18em] uppercase bg-gradient-to-r from-neutral-100 to-neutral-400 bg-clip-text text-transparent">
-                            DevSwarm
+                        <h1 className="text-xl font-heading font-bold tracking-[.3em] uppercase text-foreground mb-2">
+                            DevSwarm_HQ
                         </h1>
-                        <p className="text-[11px] text-neutral-600 mt-1">
-                            Virtual Office HQ — Sign in to continue
+                        <p className="text-[10px] text-secondary font-bold uppercase tracking-widest opacity-60">
+                            Neural Swarm Command Interface
                         </p>
                     </div>
 
-                    {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
+                    {/* Form Section */}
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-2">
                             <label
                                 htmlFor="email"
-                                className="block text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5"
+                                className="block text-[9px] font-heading font-bold text-secondary uppercase tracking-[.2em] ml-1"
                             >
-                                Email
+                                Ident_Protocol (Email)
                             </label>
-                            <input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="admin@devswarm.io"
-                                required
-                                className="w-full bg-neutral-900/80 border border-neutral-800/60 rounded-xl px-4 py-3 text-sm text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-violet-700/50 focus:ring-1 focus:ring-violet-700/20 transition-all"
-                            />
+                            <div className="relative">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/40" />
+                                <input
+                                    id="email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="node_admin@devswarm.io"
+                                    required
+                                    className="w-full bg-surface-3 border border-edge rounded-xl pl-12 pr-4 py-4 text-xs text-foreground placeholder:text-secondary/20 focus:outline-none focus:border-accent/50 transition-all font-medium"
+                                />
+                            </div>
                         </div>
 
-                        <div>
+                        <div className="space-y-2">
                             <label
                                 htmlFor="password"
-                                className="block text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5"
+                                className="block text-[9px] font-heading font-bold text-secondary uppercase tracking-[.2em] ml-1"
                             >
-                                Password
+                                Access_Key (Password)
                             </label>
-                            <input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••"
-                                required
-                                className="w-full bg-neutral-900/80 border border-neutral-800/60 rounded-xl px-4 py-3 text-sm text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-violet-700/50 focus:ring-1 focus:ring-violet-700/20 transition-all"
-                            />
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary/40" />
+                                <input
+                                    id="password"
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••••••"
+                                    required
+                                    className="w-full bg-surface-3 border border-edge rounded-xl pl-12 pr-4 py-4 text-xs text-foreground placeholder:text-secondary/20 focus:outline-none focus:border-accent/50 transition-all font-medium"
+                                />
+                            </div>
                         </div>
 
                         {error && (
-                            <p className="text-[11px] text-red-400 bg-red-950/30 border border-red-800/20 rounded-lg px-3 py-2">
-                                {error}
-                            </p>
+                            <div className="bg-err/5 border border-err/20 rounded-xl px-4 py-3 flex items-center gap-3">
+                                <div className="w-1.5 h-1.5 rounded-full bg-err animate-pulse" />
+                                <p className="text-[10px] text-err font-bold uppercase tracking-tighter">
+                                    {error}
+                                </p>
+                            </div>
                         )}
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-violet-600/20"
+                            className="w-full group relative flex items-center justify-center gap-3 py-4 rounded-xl text-[10px] font-heading font-bold uppercase tracking-[.2em] bg-accent text-white hover:bg-accent/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-accent/20 cursor-pointer"
                         >
                             {loading ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Signing in…
-                                </span>
+                                <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
-                                "Sign In"
+                                <>
+                                    <span>Initialize_Link</span>
+                                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                                </>
                             )}
                         </button>
                     </form>
 
-                    {/* Demo hint */}
-                    <div className="mt-6 pt-5 border-t border-neutral-800/40">
-                        <p className="text-[10px] text-neutral-600 text-center mb-2">
-                            Demo credentials
-                        </p>
-                        <div className="grid grid-cols-2 gap-2 text-[10px]">
+                    {/* Quick Access / Demo */}
+                    <div className="mt-10 pt-8 border-t border-edge/50">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="flex-1 h-px bg-edge/50" />
+                            <span className="text-[9px] font-heading font-bold text-secondary uppercase tracking-widest">
+                                Authorized_Nodes
+                            </span>
+                            <div className="flex-1 h-px bg-edge/50" />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
                             <button
                                 type="button"
                                 onClick={() => {
                                     setEmail("admin@devswarm.io");
                                     setPassword("admin");
                                 }}
-                                className="bg-neutral-900/60 border border-neutral-800/40 rounded-lg p-2 text-neutral-400 hover:bg-neutral-800/60 hover:text-neutral-300 transition-colors text-center"
+                                className="bg-surface-3 border border-edge rounded-xl p-3 text-left hover:border-accent/40 hover:bg-surface-2 transition-all cursor-pointer group"
                             >
-                                <span className="block font-medium text-neutral-300">
-                                    Admin
+                                <span className="block text-[10px] font-bold text-foreground group-hover:text-accent transition-colors uppercase mb-1">
+                                    Admin_Root
                                 </span>
-                                admin@devswarm.io
+                                <span className="text-[8px] font-mono text-secondary uppercase tracking-tighter">
+                                    Full_System_Control
+                                </span>
                             </button>
                             <button
                                 type="button"
@@ -153,14 +164,25 @@ export default function LoginPage() {
                                     setEmail("viewer@devswarm.io");
                                     setPassword("viewer");
                                 }}
-                                className="bg-neutral-900/60 border border-neutral-800/40 rounded-lg p-2 text-neutral-400 hover:bg-neutral-800/60 hover:text-neutral-300 transition-colors text-center"
+                                className="bg-surface-3 border border-edge rounded-xl p-3 text-left hover:border-ok/40 hover:bg-surface-2 transition-all cursor-pointer group"
                             >
-                                <span className="block font-medium text-neutral-300">
-                                    Viewer
+                                <span className="block text-[10px] font-bold text-foreground group-hover:text-ok transition-colors uppercase mb-1">
+                                    Guest_Node
                                 </span>
-                                viewer@devswarm.io
+                                <span className="text-[8px] font-mono text-secondary uppercase tracking-tighter">
+                                    Read_Only_Access
+                                </span>
                             </button>
                         </div>
+                    </div>
+                </div>
+                
+                {/* Footer Meta */}
+                <div className="mt-8 flex items-center justify-between px-4">
+                    <span className="text-[8px] font-mono text-secondary/40 uppercase">DevSwarm_Protocol_v2.4.0</span>
+                    <div className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-ok" />
+                        <span className="text-[8px] font-mono text-secondary/40 uppercase">Secure_Handshake_Active</span>
                     </div>
                 </div>
             </div>

@@ -4,209 +4,239 @@ import { motion } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { StatusBadge } from "./AgentAvatar";
 import { ROOM_ICON } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { X, Search, Terminal, Database, MessageSquare, ListChecks, MapPin, ArrowRight, ArrowLeft, Cpu } from "lucide-react";
 
 export default function InspectorPanel() {
-    const select = useStore((s) => s.select);
-    const tasksByAgent = useStore((s) => s.tasksByAgent);
-    const messages = useStore((s) => s.messages);
-    const agent = useStore((s) =>
-        s.selectedId ? s.agents[s.selectedId] ?? null : null,
-    );
+  const select = useStore((s) => s.select);
+  const tasksByAgent = useStore((s) => s.tasksByAgent);
+  const messages = useStore((s) => s.messages);
+  const agent = useStore((s) =>
+    s.selectedId ? s.agents[s.selectedId] ?? null : null,
+  );
 
-    if (!agent) {
-        return (
-            <div className="h-full flex items-center justify-center p-8">
-                <div className="text-center space-y-2">
-                    <span className="text-2xl">🔍</span>
-                    <p className="text-neutral-600 text-xs">
-                        Select an agent to inspect
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    const aTasks = tasksByAgent(agent.id);
-    const aMessages = messages
-        .filter((m) => m.fromAgent === agent.id || m.toAgent === agent.id)
-        .slice(0, 12);
-
+  if (!agent) {
     return (
-        <motion.div
-            key={agent.id}
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="p-5 space-y-5 select-text"
-        >
-            {/* ── Agent header ── */}
-            <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                    <div
-                        className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center text-xl font-bold shadow-lg"
-                        style={{
-                            background: `linear-gradient(135deg, ${agent.avatarColor}25, ${agent.avatarColor}0a)`,
-                            color: agent.avatarColor,
-                            border: `2px solid ${agent.avatarColor}30`,
-                            boxShadow: `0 8px 24px ${agent.avatarColor}15`,
-                        }}
-                    >
-                        {agent.name[0]}
-                    </div>
-                    <div>
-                        <h2 className="text-sm font-semibold text-neutral-100">
-                            {agent.name}
-                        </h2>
-                        <p className="text-[11px] text-neutral-500 mt-0.5">{agent.role}</p>
-                    </div>
-                </div>
-                <button
-                    onClick={() => select(null)}
-                    className="text-neutral-600 hover:text-neutral-300 text-xl transition-colors p-1"
-                >
-                    ×
-                </button>
-            </div>
-
-            {/* ── Status + Room ── */}
-            <div className="flex items-center gap-2.5">
-                <StatusBadge status={agent.status} />
-                <span className="text-[11px] text-neutral-600">
-                    {ROOM_ICON[agent.room]} {agent.room}
-                </span>
-            </div>
-
-            {/* ── Current task ── */}
-            {agent.currentTask && (
-                <Section title="Current Task">
-                    <div className="rounded-xl bg-neutral-900/80 border border-neutral-800/60 p-3">
-                        <p className="text-xs text-neutral-300 leading-relaxed">
-                            {agent.currentTask}
-                        </p>
-                    </div>
-                </Section>
-            )}
-
-            {/* ── Thought chain ── */}
-            {agent.thoughtChain && (
-                <Section title="Thought Chain">
-                    <div className="rounded-xl bg-neutral-950/60 border border-neutral-800/40 p-3">
-                        <p className="text-[11px] text-violet-300/80 font-mono leading-relaxed whitespace-pre-wrap">
-                            {agent.thoughtChain}
-                        </p>
-                    </div>
-                </Section>
-            )}
-
-            {/* ── Tech stack ── */}
-            {agent.techStack?.length > 0 && (
-                <Section title="Tech Stack">
-                    <div className="flex flex-wrap gap-1.5">
-                        {agent.techStack.map((t) => (
-                            <span
-                                key={t}
-                                className="px-2 py-[3px] text-[9px] font-medium bg-neutral-800/60 text-neutral-400 rounded-md border border-neutral-700/40"
-                            >
-                                {t}
-                            </span>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {/* ── Tasks ── */}
-            {aTasks.length > 0 && (
-                <Section title={`Tasks (${aTasks.length})`}>
-                    <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
-                        {aTasks.map((task) => (
-                            <div
-                                key={task.id}
-                                className="rounded-lg bg-neutral-900/60 border border-neutral-800/40 px-3 py-2"
-                            >
-                                <div className="flex items-start justify-between gap-2">
-                                    <span className="text-[11px] text-neutral-300 font-medium leading-tight line-clamp-1">
-                                        {task.title}
-                                    </span>
-                                    <TaskStatusPill status={task.status} />
-                                </div>
-                                {task.description && (
-                                    <p className="text-[10px] text-neutral-600 mt-1 line-clamp-1">
-                                        {task.description}
-                                    </p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-            )}
-
-            {/* ── Messages ── */}
-            {aMessages.length > 0 && (
-                <Section title="Messages">
-                    <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
-                        {aMessages.map((m) => {
-                            const outgoing = m.fromAgent === agent.id;
-                            return (
-                                <div
-                                    key={m.id}
-                                    className={`text-[10px] p-2.5 rounded-xl ${outgoing
-                                            ? "bg-violet-950/30 border border-violet-800/20 ml-5"
-                                            : "bg-neutral-900/60 border border-neutral-800/40 mr-5"
-                                        }`}
-                                >
-                                    <div className="flex items-center justify-between mb-1 text-neutral-600">
-                                        <span>
-                                            {outgoing ? `→ ${m.toAgent}` : `← ${m.fromAgent}`}
-                                        </span>
-                                        <span className="text-[8px] text-neutral-700">
-                                            {m.messageType}
-                                        </span>
-                                    </div>
-                                    <p className="text-neutral-400 leading-relaxed">
-                                        {m.content}
-                                    </p>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </Section>
-            )}
-        </motion.div>
+      <div className="h-full flex flex-col items-center justify-center p-8 text-center space-y-4">
+        <div className="w-16 h-16 rounded-full bg-surface-2 border border-edge flex items-center justify-center">
+            <Search className="w-6 h-6 text-secondary opacity-20" />
+        </div>
+        <div className="space-y-1">
+            <p className="text-[10px] font-heading font-bold text-secondary uppercase tracking-[.2em]">
+                Neural Inspector
+            </p>
+            <p className="text-[9px] text-secondary/50 uppercase tracking-widest">
+                Select an active node to probe
+            </p>
+        </div>
+      </div>
     );
+  }
+
+  const aTasks = tasksByAgent(agent.id);
+  const aMessages = messages
+    .filter((m) => m.fromAgent === agent.id || m.toAgent === agent.id)
+    .slice(0, 15);
+
+  return (
+    <motion.div
+      key={agent.id}
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="h-full flex flex-col bg-surface overflow-hidden"
+    >
+      {/* ── Header ── */}
+      <div className="p-6 border-b border-edge/50 bg-surface-2/30">
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-heading font-bold shadow-2xl relative overflow-hidden group"
+              style={{
+                background: `linear-gradient(135deg, ${agent.avatarColor}30, ${agent.avatarColor}10)`,
+                color: agent.avatarColor,
+                border: `1px solid ${agent.avatarColor}40`,
+              }}
+            >
+              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              {agent.name[0]}
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-sm font-heading font-bold text-foreground tracking-wider uppercase">
+                {agent.name}
+              </h2>
+              <p className="text-[10px] text-accent font-bold uppercase tracking-[.15em]">{agent.role}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => select(null)}
+            className="p-2 rounded-lg hover:bg-surface-3 text-secondary hover:text-foreground transition-all cursor-pointer border border-transparent hover:border-edge"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <StatusBadge status={agent.status} />
+          <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-surface-3 border border-edge/50">
+            <MapPin className="w-3 h-3 text-secondary" />
+            <span className="text-[9px] font-bold text-foreground uppercase tracking-widest">
+              {agent.room}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Scrollable Content ── */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8 pb-12">
+        {/* Current task */}
+        {agent.currentTask && (
+          <Section icon={Terminal} title="Current Process">
+            <div className="rounded-xl bg-surface-2 border border-edge/60 p-4 shadow-inner">
+              <p className="text-[11px] text-foreground/90 leading-relaxed font-medium">
+                {agent.currentTask}
+              </p>
+            </div>
+          </Section>
+        )}
+
+        {/* Thought chain */}
+        {agent.thoughtChain && (
+          <Section icon={Cpu} title="Neural Chain">
+            <div className="rounded-xl bg-black/40 border border-edge p-4 overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-2">
+                <div className="w-1 h-1 rounded-full bg-accent animate-pulse" />
+              </div>
+              <p className="text-[10px] text-accent/80 font-mono leading-relaxed whitespace-pre-wrap selection:bg-accent/20">
+                {agent.thoughtChain}
+              </p>
+            </div>
+          </Section>
+        )}
+
+        {/* Tech stack */}
+        {agent.techStack?.length > 0 && (
+          <Section icon={Database} title="System Capabilities">
+            <div className="flex flex-wrap gap-2">
+              {agent.techStack.map((t) => (
+                <div
+                  key={t}
+                  className="px-3 py-1.5 text-[9px] font-bold bg-surface-3 text-secondary rounded-lg border border-edge hover:border-accent/30 hover:text-foreground transition-all cursor-default"
+                >
+                  {t.toUpperCase()}
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {/* Tasks */}
+        {aTasks.length > 0 && (
+          <Section icon={ListChecks} title={`Process Queue (${aTasks.length})`}>
+            <div className="space-y-2">
+              {aTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="rounded-xl bg-surface-2/50 border border-edge/40 p-4 hover:border-accent/20 transition-colors group"
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <span className="text-[11px] text-foreground font-bold leading-tight group-hover:text-accent transition-colors">
+                      {task.title}
+                    </span>
+                    <TaskStatusPill status={task.status} />
+                  </div>
+                  {task.description && (
+                    <p className="text-[10px] text-secondary leading-relaxed line-clamp-2">
+                      {task.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {/* Messages */}
+        {aMessages.length > 0 && (
+          <Section icon={MessageSquare} title="Recent Transmission">
+            <div className="space-y-3">
+              {aMessages.map((m) => {
+                const outgoing = m.fromAgent === agent.id;
+                return (
+                  <div
+                    key={m.id}
+                    className={cn(
+                        "p-4 rounded-xl border transition-all",
+                        outgoing
+                            ? "bg-accent/5 border-accent/20 ml-4"
+                            : "bg-surface-3 border-edge mr-4"
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {outgoing ? <ArrowRight className="w-3 h-3 text-accent" /> : <ArrowLeft className="w-3 h-3 text-secondary" />}
+                        <span className="text-[9px] font-bold text-foreground uppercase tracking-widest">
+                          {outgoing ? m.toAgent : m.fromAgent}
+                        </span>
+                      </div>
+                      <span className="text-[8px] font-mono font-bold text-secondary/50 uppercase">
+                        {m.messageType}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-foreground/80 leading-relaxed italic">
+                      "{m.content}"
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+        )}
+      </div>
+    </motion.div>
+  );
 }
 
 /* ── Helpers ── */
 
 function Section({
-    title,
-    children,
+  title,
+  icon: Icon,
+  children,
 }: {
-    title: string;
-    children: React.ReactNode;
+  title: string;
+  icon: any;
+  children: React.ReactNode;
 }) {
-    return (
-        <div>
-            <h3 className="text-[9px] font-semibold text-neutral-600 uppercase tracking-[.12em] mb-2">
-                {title}
-            </h3>
-            {children}
-        </div>
-    );
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 px-1">
+        <Icon className="w-3.5 h-3.5 text-accent" />
+        <h3 className="text-[10px] font-heading font-bold text-secondary uppercase tracking-[.2em]">
+          {title}
+        </h3>
+      </div>
+      {children}
+    </div>
+  );
 }
 
 function TaskStatusPill({ status }: { status: string }) {
-    const cls: Record<string, string> = {
-        Done: "bg-emerald-950/50 text-emerald-400",
-        "In Progress": "bg-sky-950/50 text-sky-400",
-        Review: "bg-amber-950/50 text-amber-400",
-        Blocked: "bg-red-950/50 text-red-400",
-        Backlog: "bg-neutral-800/50 text-neutral-500",
-    };
-    return (
-        <span
-            className={`shrink-0 text-[9px] px-1.5 py-0.5 rounded-md font-medium ${cls[status] ?? cls.Backlog}`}
-        >
-            {status}
-        </span>
-    );
+  const cls: Record<string, string> = {
+    Done: "bg-ok/10 text-ok border-ok/20",
+    "In Progress": "bg-accent/10 text-accent border-accent/20",
+    Review: "bg-warn/10 text-warn border-warn/20",
+    Blocked: "bg-err/10 text-err border-err/20",
+    Backlog: "bg-surface-3 text-secondary border-edge/50",
+  };
+  return (
+    <span
+      className={cn(
+        "shrink-0 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border transition-colors",
+        cls[status] ?? cls.Backlog
+      )}
+    >
+      {status}
+    </span>
+  );
 }

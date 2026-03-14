@@ -2,7 +2,7 @@
  * Tests for components/WSProvider.tsx — WS connection + REST bootstrap.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, waitFor } from "@testing-library/react";
+import { render, waitFor, act } from "@testing-library/react";
 import WSProvider from "@/components/WSProvider";
 import { useStore } from "@/lib/store";
 
@@ -65,13 +65,13 @@ describe("WSProvider", () => {
         expect(getByText("dashboard-content")).toBeInTheDocument();
     });
 
-    it("connects WebSocket on mount", () => {
-        render(<WSProvider><div /></WSProvider>);
+    it("connects WebSocket on mount", async () => {
+        await act(async () => { render(<WSProvider><div /></WSProvider>); });
         expect(mockConnect).toHaveBeenCalledTimes(1);
     });
 
-    it("subscribes to onMessage and onStatus", () => {
-        render(<WSProvider><div /></WSProvider>);
+    it("subscribes to onMessage and onStatus", async () => {
+        await act(async () => { render(<WSProvider><div /></WSProvider>); });
         expect(mockOnMessage).toHaveBeenCalledTimes(1);
         expect(mockOnStatus).toHaveBeenCalledTimes(1);
     });
@@ -131,9 +131,13 @@ describe("WSProvider", () => {
         });
     });
 
-    it("disconnects WebSocket on unmount", () => {
-        const { unmount } = render(<WSProvider><div /></WSProvider>);
-        unmount();
+    it("disconnects WebSocket on unmount", async () => {
+        let unmountFunc: any;
+        await act(async () => {
+            const { unmount } = render(<WSProvider><div /></WSProvider>);
+            unmountFunc = unmount;
+        });
+        unmountFunc();
         expect(mockDisconnect).toHaveBeenCalledTimes(1);
     });
 });

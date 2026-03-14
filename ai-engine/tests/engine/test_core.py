@@ -65,6 +65,7 @@ class TestOfficeState:
             "comms_processed",
             "kb_entries_organized",
             "current_goal",
+            "test_results",
             "error",
         }
         assert set(state.keys()) == expected_keys

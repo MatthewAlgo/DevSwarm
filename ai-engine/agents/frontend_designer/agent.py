@@ -35,32 +35,28 @@ class FrontendDesignerAgent(BaseAgent[FrontendDesignOutput]):
         state: OfficeState,
         parsed: FrontendDesignOutput,
         context: AgentContext,
-    ) -> OfficeState:
+    ) -> dict:
         """Share design output with Viral Engineer and Orchestrator."""
-        await context.update_agent(
-            self.agent_id,
+        await self.update_status(
             current_task="Creating visual designs",
             thought_chain=f"Design '{parsed.description}' — {parsed.approval_status}.",
         )
 
         # Send to Viral Engineer for content integration
-        await context.create_message(
-            from_agent=self.agent_id,
+        await self.broadcast_message(
             to_agent="viral_engineer",
             content=f"Design ready: {parsed.description}",
             message_type="design_ready",
         )
 
         # Notify Orchestrator
-        await context.create_message(
-            from_agent=self.agent_id,
+        await self.broadcast_message(
             to_agent="orchestrator",
             content=f"Design draft complete: {parsed.description}. Ready for review.",
             message_type="design_complete",
         )
 
-        state["design_output"] = parsed.model_dump()
-        return state
+        return {"design_output": parsed.model_dump()}
 
 
 agent = FrontendDesignerAgent()

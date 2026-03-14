@@ -9,19 +9,16 @@ describe("MobileNav", () => {
     it("renders all 5 tabs", () => {
         render(<MobileNav />);
         expect(screen.getByText("Floor")).toBeInTheDocument();
-        expect(screen.getByText("Kanban")).toBeInTheDocument();
-        expect(screen.getByText("Agents")).toBeInTheDocument();
-        expect(screen.getByText("Activity")).toBeInTheDocument();
-        expect(screen.getByText("Settings")).toBeInTheDocument();
+        expect(screen.getByText("Board")).toBeInTheDocument();
+        expect(screen.getByText("Swarm")).toBeInTheDocument();
+        expect(screen.getByText("Neural")).toBeInTheDocument();
+        expect(screen.getByText("Config")).toBeInTheDocument();
     });
 
-    it("renders tab icons", () => {
-        render(<MobileNav />);
-        expect(screen.getByText("🏢")).toBeInTheDocument();
-        expect(screen.getByText("📋")).toBeInTheDocument();
-        expect(screen.getByText("🤖")).toBeInTheDocument();
-        expect(screen.getByText("📡")).toBeInTheDocument();
-        expect(screen.getByText("⚙️")).toBeInTheDocument();
+    it("renders tab icons (replaced with lucide svg verification)", () => {
+        const { container } = render(<MobileNav />);
+        const svgs = container.querySelectorAll("svg");
+        expect(svgs.length).toBe(5);
     });
 
     it("has correct number of nav links", () => {
