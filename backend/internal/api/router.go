@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // NewRouter creates and configures the Chi router with all routes.
@@ -40,6 +41,9 @@ func NewRouter(h *hub.Hub, repo *db.Repository) *chi.Mux {
 
 	// Public health alias for infra checks
 	r.Get("/health", handlers.HealthCheck)
+
+	// Prometheus metrics
+	r.Get("/metrics", promhttp.Handler().ServeHTTP)
 
 	// REST API routes
 	r.Route("/api", func(r chi.Router) {

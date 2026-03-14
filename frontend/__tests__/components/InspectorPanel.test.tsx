@@ -6,7 +6,7 @@ import { act } from "react";
 import { render, screen } from "@testing-library/react";
 import InspectorPanel from "@/components/InspectorPanel";
 import { useStore } from "@/lib/store";
-import { ALL_AGENTS, ALL_TASKS, ALL_MESSAGES, ORCHESTRATOR } from "../helpers/fixtures";
+import { ALL_AGENTS, ALL_TASKS, ALL_MESSAGES } from "../helpers/fixtures";
 
 beforeEach(() => {
     useStore.setState({
@@ -52,7 +52,7 @@ describe("InspectorPanel", () => {
 
     it("shows tech stack", () => {
         render(<InspectorPanel />);
-        expect(screen.getByText("LangGraph")).toBeInTheDocument();
+        expect(screen.getByText("LANGGRAPH")).toBeInTheDocument();
         expect(screen.getByText("MCP")).toBeInTheDocument();
     });
 
@@ -60,14 +60,14 @@ describe("InspectorPanel", () => {
         useStore.setState({ selectedId: null });
         render(<InspectorPanel />);
         expect(
-            screen.getByText(/Select an agent/i),
+            screen.getByText(/Select an active node to probe/i),
         ).toBeInTheDocument();
     });
 
     it("shows section headings", () => {
         render(<InspectorPanel />);
-        expect(screen.getByText("Current Task")).toBeInTheDocument();
-        expect(screen.getByText("Tech Stack")).toBeInTheDocument();
+        expect(screen.getByText("Current Process")).toBeInTheDocument();
+        expect(screen.getByText("System Capabilities")).toBeInTheDocument();
     });
 
     it("switches details when selected agent changes", () => {

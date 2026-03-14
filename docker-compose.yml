@@ -36,9 +36,11 @@ services:
       dockerfile: Dockerfile
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - API_BASE_URL=http://backend:8080/api
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - REDIS_URL=redis://redis:6379/0
+      - HOST_WORKSPACE_VOLUME=agent_workspace
+      - JWT_SECRET=${JWT_SECRET:-super_secret_devswarm_key_123}
     ports:
       - "8000:8000"
     depends_on:
@@ -48,6 +50,8 @@ services:
         condition: service_healthy
     volumes:
       - ./ai-engine:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - agent_workspace:/workspace
 
   backend:
     build:
@@ -58,6 +62,7 @@ services:
       - DATABASE_URL=${DATABASE_URL_GO}
       - AI_ENGINE_URL=http://ai-engine:8000
       - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=${JWT_SECRET:-super_secret_devswarm_key_123}
     ports:
       - "8080:8080"
     depends_on:
@@ -88,6 +93,25 @@ services:
       - /app/node_modules
       - /app/.next
 
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/etc/grafana/dashboards
+
 volumes:
   pgdata:
   redisdata:
+  agent_workspace:
+    name: agent_workspace

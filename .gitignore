@@ -13,6 +13,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+ai-engine/agent_workspace/
 
 # Go
 backend/tmp/

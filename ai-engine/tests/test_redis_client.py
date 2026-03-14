@@ -9,6 +9,7 @@ from urllib.parse import urlparse, urlunparse
 import pytest
 import pytest_asyncio
 import redis_client
+from redis.asyncio import RedisError
 
 # Force a dedicated Redis DB for tests even when REDIS_URL is already set.
 base_redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -23,13 +24,13 @@ async def redis_conn():
         r = await redis_client.get_redis()
         await r.flushdb()  # Clean test DB
         yield r
-    except Exception:
+    except (RedisError, ConnectionError):
         pytest.skip("Redis not available for testing")
     finally:
         try:
             r = await redis_client.get_redis()
             await r.flushdb()
-        except Exception:
+        except (RedisError, ConnectionError):
             pass
         await redis_client.close_redis()
 

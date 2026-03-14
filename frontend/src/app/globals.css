@@ -4,7 +4,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-exo2);
+  --font-heading: var(--font-orbitron);
   --font-mono: var(--font-geist-mono);
 
   /* DevSwarm palette */
@@ -12,15 +13,17 @@
   --color-surface-2: #111111;
   --color-surface-3: #1a1a1a;
   --color-edge: #262626;
-  --color-accent: #8b5cf6;
+  --color-accent: #3b82f6;
+  --color-primary: #ffffff;
+  --color-secondary: #94a3b8;
   --color-ok: #10b981;
   --color-warn: #f59e0b;
   --color-err: #ef4444;
 }
 
 :root {
-  --background: #050505;
-  --foreground: #f5f5f5;
+  --background: #0b0b10;
+  --foreground: #f8fafc;
 }
 
 /* ── Base ── */
@@ -30,8 +33,14 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans, system-ui, sans-serif);
+  font-family: var(--font-exo2), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-orbitron), sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }

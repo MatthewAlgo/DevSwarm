@@ -11,6 +11,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from urllib.request import Request, urlopen
+import urllib.error
 
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -95,7 +96,7 @@ class CrawlerAgent(BaseAgent[CrawlerCrawlOutput]):
                     relevance_score=10,
                     tags=["connectivity", "utc", "network"],
                 )
-            except Exception as exc:
+            except (urllib.error.URLError, TimeoutError, ValueError, KeyError, TypeError) as exc:
                 errors.append(f"{source}: {exc}")
 
         error_summary = "; ".join(errors[:2]) if errors else "unknown error"
@@ -115,34 +116,30 @@ class CrawlerAgent(BaseAgent[CrawlerCrawlOutput]):
         state: OfficeState,
         parsed: CrawlerCrawlOutput,
         context: AgentContext,
-    ) -> OfficeState:
+    ) -> dict:
         """Report crawl findings to Archivist for KB archival."""
         findings = parsed.findings
         if self._is_connectivity_goal(state.get("current_goal", "")):
             findings = [await self._build_connectivity_finding()]
 
-        await context.update_agent(
-            self.agent_id,
+        await self.update_status(
             current_task="Crawling web for trending content",
             thought_chain=f"Found {len(findings)} trending topics. Summarizing findings.",
         )
 
         # Share findings with Archivist
         for finding in findings:
-            await context.create_message(
-                from_agent=self.agent_id,
-                to_agent="archivist",
+            await self.broadcast_message(
+            to_agent="archivist",
                 content=f"New finding: {finding.topic} - {finding.summary}",
                 message_type="knowledge",
             )
 
-        await context.update_agent(
-            self.agent_id,
+        await self.update_status(
             thought_chain=f"Crawl cycle complete. Found {len(findings)} items.",
         )
 
-        state["crawl_results"] = [f.model_dump() for f in findings]
-        return state
+        return {"crawl_results": [f.model_dump() for f in findings]}
 
 
 agent = CrawlerAgent()

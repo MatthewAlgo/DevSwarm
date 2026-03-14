@@ -51,7 +51,7 @@ async def ping() -> bool:
     try:
         r = await get_redis()
         return await r.ping()
-    except Exception:
+    except (aioredis.RedisError, ConnectionError):
         return False
 
 

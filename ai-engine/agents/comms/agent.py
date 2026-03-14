@@ -35,25 +35,22 @@ class CommsAgent(BaseAgent[CommsOutput]):
         state: OfficeState,
         parsed: CommsOutput,
         context: AgentContext,
-    ) -> OfficeState:
+    ) -> dict:
         """Process communications and escalate high-priority items."""
-        await context.update_agent(
-            self.agent_id,
+        await self.update_status(
             current_task="Processing inbound communications",
             thought_chain=f"Processing {len(parsed.processed)} messages. {len(parsed.escalations)} escalations.",
         )
 
         # Escalate items to Orchestrator
         for escalation in parsed.escalations:
-            await context.create_message(
-                from_agent=self.agent_id,
-                to_agent="orchestrator",
+            await self.broadcast_message(
+            to_agent="orchestrator",
                 content=f"Escalation: {escalation}",
                 message_type="escalation",
             )
 
-        state["comms_processed"] = len(parsed.processed)
-        return state
+        return {"comms_processed": len(parsed.processed)}
 
 
 agent = CommsAgent()

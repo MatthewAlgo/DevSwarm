@@ -36,10 +36,9 @@ class DevOpsAgent(BaseAgent[DevOpsHealthOutput]):
         state: OfficeState,
         parsed: DevOpsHealthOutput,
         context: AgentContext,
-    ) -> OfficeState:
+    ) -> dict:
         """Check for error agents and attempt recovery."""
-        await context.update_agent(
-            self.agent_id,
+        await self.update_status(
             current_task="System health monitoring",
             thought_chain=f"Diagnosis: {parsed.diagnosis}",
         )
@@ -59,16 +58,14 @@ class DevOpsAgent(BaseAgent[DevOpsHealthOutput]):
                 thought_chain="Recovered by DevOps (DevOps Monitor). Error cleared.",
             )
 
-            await context.create_message(
-                from_agent=self.agent_id,
-                to_agent=agent_id,
+            await self.broadcast_message(
+            to_agent=agent_id,
                 content="Recovery complete. Your error has been resolved.",
                 message_type="recovery",
             )
 
-            await context.create_message(
-                from_agent=self.agent_id,
-                to_agent="orchestrator",
+            await self.broadcast_message(
+            to_agent="orchestrator",
                 content=f"Agent {agent_id} recovered from Error state.",
                 message_type="status_report",
             )
@@ -84,12 +81,12 @@ class DevOpsAgent(BaseAgent[DevOpsHealthOutput]):
             "actions_taken": parsed.actions_taken,
         }
 
-        state["health_report"] = health_report
+        updates = {"health_report": health_report}
         # Clear error after health check
         if error_agents:
-            state["error"] = ""
+            updates["error"] = ""
 
-        return state
+        return updates
 
 
 agent = DevOpsAgent()

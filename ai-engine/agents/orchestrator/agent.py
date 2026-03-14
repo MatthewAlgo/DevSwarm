@@ -37,7 +37,7 @@ class OrchestratorAgent(BaseAgent[OrchestratorRoutingOutput]):
         state: OfficeState,
         parsed: OrchestratorRoutingOutput,
         context: AgentContext,
-    ) -> OfficeState:
+    ) -> dict:
         """Create subtasks and delegate to specialist agents."""
         current_goal = state.get("current_goal", "")
         delegated_to: list[str] = []
@@ -70,9 +70,8 @@ class OrchestratorAgent(BaseAgent[OrchestratorRoutingOutput]):
                 )
 
             # Send delegation message
-            await context.create_message(
-                from_agent=self.agent_id,
-                to_agent=subtask.agent,
+            await self.broadcast_message(
+            to_agent=subtask.agent,
                 content=f"Task assigned: {subtask.task}",
                 message_type="delegation",
             )
@@ -82,9 +81,8 @@ class OrchestratorAgent(BaseAgent[OrchestratorRoutingOutput]):
 
         # Direct response to user
         if parsed.response:
-            await context.create_message(
-                from_agent=self.agent_id,
-                to_agent="user",
+            await self.broadcast_message(
+            to_agent="user",
                 content=parsed.response,
                 message_type="chat",
             )
@@ -96,33 +94,29 @@ class OrchestratorAgent(BaseAgent[OrchestratorRoutingOutput]):
                 await context.update_agent(
                     agent_id, current_room=RoomEnum.WAR_ROOM, status=AgentStatusEnum.MEETING
                 )
-            await context.update_agent(
-                self.agent_id,
-                current_room=RoomEnum.WAR_ROOM,
+            await self.update_status(
+            current_room=RoomEnum.WAR_ROOM,
                 status=AgentStatusEnum.MEETING,
                 thought_chain=f"Meeting in War Room about: {current_goal}",
             )
-            await context.create_message(
-                from_agent=self.agent_id,
-                to_agent="system",
+            await self.broadcast_message(
+            to_agent="system",
                 content=f"Meeting scheduled: {current_goal} with {', '.join(parsed.meeting_agents)}",
                 message_type="meeting",
             )
 
-        # Update state
-        state["routing_decisions"] = parsed.model_dump()
-        state["delegated_agents"] = delegated_to
-        state["delegated_task_ids"] = delegated_task_ids
-
-        await context.update_agent(
-            self.agent_id,
+        await self.update_status(
             current_room=None,
             status=None,
             current_task=f"Delegated: {current_goal}",
             thought_chain=f"Delegated to {', '.join(delegated_to)}. Monitoring progress.",
         )
 
-        return state
+        return {
+            "routing_decisions": parsed.model_dump(),
+            "delegated_agents": delegated_to,
+            "delegated_task_ids": delegated_task_ids
+        }
 
 
 # Module-level instance for backward compatibility with graph.py

@@ -5,7 +5,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AgentAvatar, { AgentDot, StatusBadge } from "@/components/AgentAvatar";
-import { ORCHESTRATOR, RESEARCHER, DEVOPS, CLOCKED_OUT_AGENT } from "../helpers/fixtures";
+import { ORCHESTRATOR, RESEARCHER, DEVOPS } from "../helpers/fixtures";
 import type { AgentStatus } from "@/lib/types";
 
 /* ═══════════════════════════════════════════
@@ -60,13 +60,13 @@ describe("AgentAvatar", () => {
         ).toBeInTheDocument();
     });
 
-    it("shows status dot", () => {
+    it("shows status indicator", () => {
         const { container } = render(
             <AgentAvatar agent={ORCHESTRATOR} selected={false} onClick={vi.fn()} />,
         );
-        // Status dot is the small absolute-positioned span
-        const dots = container.querySelectorAll(".rounded-full");
-        expect(dots.length).toBeGreaterThan(0);
+        // Status indicator is the bottom bar
+        const bars = container.querySelectorAll(".bottom-0");
+        expect(bars.length).toBeGreaterThan(0);
     });
 
     it("shows current task when Working and size != sm", () => {
@@ -87,10 +87,10 @@ describe("AgentAvatar", () => {
         render(
             <AgentAvatar agent={ORCHESTRATOR} selected={false} onClick={vi.fn()} />,
         );
-        // Tooltip has name in <strong> and " · Working" as text node
+        // Tooltip has name in <strong> and " | Working"
         const strong = screen.getAllByText("Orchestrator");
         expect(strong.length).toBeGreaterThanOrEqual(1);
-        expect(screen.getByText(/· Working/)).toBeInTheDocument();
+        expect(screen.getByText(/Working/)).toBeInTheDocument();
     });
 });
 
@@ -141,9 +141,9 @@ describe("StatusBadge", () => {
         expect(screen.getByText(status)).toBeInTheDocument();
     });
 
-    it("has status dot with correct color", () => {
+    it("has status icon", () => {
         const { container } = render(<StatusBadge status="Working" />);
-        const dots = container.querySelectorAll(".rounded-full");
-        expect(dots.length).toBeGreaterThan(0);
+        const icons = container.querySelectorAll("svg");
+        expect(icons.length).toBeGreaterThan(0);
     });
 });

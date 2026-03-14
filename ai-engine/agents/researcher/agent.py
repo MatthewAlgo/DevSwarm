@@ -35,32 +35,28 @@ class ResearcherAgent(BaseAgent[ResearcherOutput]):
         state: OfficeState,
         parsed: ResearcherOutput,
         context: AgentContext,
-    ) -> OfficeState:
+    ) -> dict:
         """Share research findings with Viral Engineer and Archivist."""
-        await context.update_agent(
-            self.agent_id,
+        await self.update_status(
             current_task="Deep research in progress",
             thought_chain=f"Synthesizing report: {parsed.title}",
         )
 
         # Share with Viral Engineer for content creation
-        await context.create_message(
-            from_agent=self.agent_id,
+        await self.broadcast_message(
             to_agent="viral_engineer",
             content=f"Research complete: {parsed.title}. Key findings available for content creation.",
             message_type="research_complete",
         )
 
         # Share with Archivist for KB
-        await context.create_message(
-            from_agent=self.agent_id,
+        await self.broadcast_message(
             to_agent="archivist",
             content=f"New research report: {parsed.title}",
             message_type="knowledge",
         )
 
-        state["research_findings"] = parsed.model_dump()
-        return state
+        return {"research_findings": parsed.model_dump()}
 
 
 agent = ResearcherAgent()

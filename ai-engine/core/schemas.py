@@ -220,6 +220,7 @@ class DeveloperOutput(BaseAgentOutput):
 
     implementation_plan: str = Field(description="Detailed plan for implementation")
     changes: list[CodeChange] = Field(default_factory=list, description="List of code changes")
+    test_command: str = Field(default="", description="Bash command to verify the changes (e.g. 'pytest tests/'). Run in an isolated container.")
     technical_debt_notes: str = Field(default="", description="Notes on technical debt or future improvements")
     ready_for_review: bool = Field(default=True, description="Whether the code is ready for reviewer inspection")
 

@@ -33,42 +33,42 @@ describe("Header", () => {
 
     it("shows Live status when connected", () => {
         render(<Header />);
-        expect(screen.getByText("Live")).toBeInTheDocument();
+        expect(screen.getByText("System Online")).toBeInTheDocument();
     });
 
     it("shows Offline when disconnected", () => {
         useStore.setState({ connected: false });
         render(<Header />);
-        expect(screen.getByText("Offline")).toBeInTheDocument();
+        expect(screen.getByText("System Offline")).toBeInTheDocument();
     });
 
     it("shows Reconnecting text when disconnected", () => {
         useStore.setState({ connected: false });
         render(<Header />);
-        expect(screen.getByText("Reconnecting…")).toBeInTheDocument();
+        expect(screen.getByText("Attempting Handshake…")).toBeInTheDocument();
     });
 
     it("shows version number", () => {
         render(<Header />);
-        expect(screen.getByText("v5")).toBeInTheDocument();
+        expect(screen.getByText("BUILD v5")).toBeInTheDocument();
     });
 
     it("renders God Mode toggle button", () => {
         render(<Header />);
-        expect(screen.getByText("⚡ God Mode")).toBeInTheDocument();
+        expect(screen.getByText("ENABLE GOD_MODE")).toBeInTheDocument();
     });
 
     it("toggles God Mode on click", async () => {
         const user = userEvent.setup();
         render(<Header />);
-        await user.click(screen.getByText("⚡ God Mode"));
+        await user.click(screen.getByText("ENABLE GOD_MODE"));
         expect(useStore.getState().godMode).toBe(true);
     });
 
     it("shows active God Mode state", () => {
         useStore.setState({ godMode: true });
         render(<Header />);
-        expect(screen.getByText("✦ God Mode")).toBeInTheDocument();
+        expect(screen.getByText("GOD_MODE ACTIVE")).toBeInTheDocument();
     });
 
     it("shows user avatar initial", () => {

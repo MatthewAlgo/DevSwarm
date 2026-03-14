@@ -9,6 +9,7 @@ import asyncio
 import logging
 from typing import Any, Protocol
 
+import httpx
 from core.state import OfficeState, create_initial_state
 
 logger = logging.getLogger("devswarm.services.task_queue")
@@ -55,7 +56,7 @@ class TaskQueueWorker:
                         await self._graph_runner.run(initial_state, goal)
                         await self._redis.ack_task(task_id)
                         logger.info("[Worker] Task completed: %s", task_id)
-                    except Exception as exc:
+                    except (httpx.RequestError, RuntimeError, ValueError, KeyError, TypeError) as exc:
                         logger.error("[Worker] Task failed: %s — %s", task_id, exc)
                         await self._redis.ack_task(task_id)
                         await self._db.log_activity(
@@ -70,6 +71,6 @@ class TaskQueueWorker:
             except asyncio.CancelledError:
                 logger.info("[Worker] Task queue worker shutting down")
                 return
-            except Exception as exc:
+            except ConnectionError as exc:
                 logger.error("[Worker] Stream read error: %s", exc)
                 await asyncio.sleep(2)

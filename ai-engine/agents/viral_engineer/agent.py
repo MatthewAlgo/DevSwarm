@@ -36,24 +36,21 @@ class ViralEngineerAgent(BaseAgent[ViralContentOutput]):
         state: OfficeState,
         parsed: ViralContentOutput,
         context: AgentContext,
-    ) -> OfficeState:
+    ) -> dict:
         """Create content drafts and notify Orchestrator."""
-        await context.update_agent(
-            self.agent_id,
+        await self.update_status(
             current_task="Creating viral content",
             thought_chain=f"Created {len(parsed.drafts)} content drafts for '{parsed.topic}'.",
         )
 
         # Notify Orchestrator about content readiness
-        await context.create_message(
-            from_agent=self.agent_id,
+        await self.broadcast_message(
             to_agent="orchestrator",
             content=f"Content ready: {len(parsed.drafts)} drafts for review on topic '{parsed.topic}'",
             message_type="content_ready",
         )
 
-        state["content_drafts"] = [d.model_dump() for d in parsed.drafts]
-        return state
+        return {"content_drafts": [d.model_dump() for d in parsed.drafts]}
 
 
 agent = ViralEngineerAgent()

@@ -33,35 +33,33 @@ class ReviewerAgent(BaseAgent[ReviewerOutput]):
         state: OfficeState,
         parsed: ReviewerOutput,
         context: AgentContext,
-    ) -> OfficeState:
+    ) -> dict:
         """Report review results and potentially loop back to Developer."""
+        updates = {}
         
-        await context.update_agent(
-            self.agent_id,
+        await self.update_status(
             current_task=f"Reviewing code: {parsed.overall_verdict}",
             thought_chain=parsed.thought_process,
         )
 
         if parsed.loop_back_to_developer:
             # Notify Developer
-            await context.create_message(
-                from_agent=self.agent_id,
-                to_agent="developer",
+            await self.broadcast_message(
+            to_agent="developer",
                 content=f"Changes requested: {parsed.summary}",
                 message_type="delegation",
             )
             # Record error in state to trigger re-run of developer if needed
-            state["error"] = f"Review failed: {parsed.summary}"
+            updates["error"] = f"Review failed: {parsed.summary}"
         else:
             # Approval
-            await context.create_message(
-                from_agent=self.agent_id,
-                to_agent="orchestrator",
+            await self.broadcast_message(
+            to_agent="orchestrator",
                 content=f"Code approved: {parsed.summary}",
                 message_type="knowledge",
             )
 
-        return state
+        return updates
 
 
 agent = ReviewerAgent()

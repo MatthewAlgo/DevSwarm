@@ -8,8 +8,6 @@ import { useStore } from "@/lib/store";
 import {
     ALL_AGENTS,
     ALL_TASKS,
-    TASK_BACKLOG,
-    TASK_IN_PROGRESS,
 } from "../helpers/fixtures";
 
 beforeEach(() => {
@@ -30,7 +28,9 @@ describe("KanbanBoard", () => {
 
     it("shows total task count", () => {
         render(<KanbanBoard />);
-        expect(screen.getByText("3 tasks")).toBeInTheDocument();
+        // "3" alongside "Active_Tasks"
+        expect(screen.getByText("3")).toBeInTheDocument();
+        expect(screen.getByText("Active_Tasks")).toBeInTheDocument();
     });
 
     it("renders task titles", () => {
@@ -52,22 +52,22 @@ describe("KanbanBoard", () => {
 
     it("shows priority badge for high-priority tasks", () => {
         render(<KanbanBoard />);
-        expect(screen.getByText("P5")).toBeInTheDocument(); // TASK_IN_PROGRESS
-        expect(screen.getByText("P3")).toBeInTheDocument(); // TASK_BACKLOG
+        expect(screen.getByText("PRIORITY_P5")).toBeInTheDocument(); // TASK_IN_PROGRESS
+        expect(screen.getByText("PRIORITY_P3")).toBeInTheDocument(); // TASK_BACKLOG
     });
 
     it("shows empty state when no tasks", () => {
         useStore.setState({ tasks: [] });
         render(<KanbanBoard />);
-        expect(screen.getByText("No tasks yet")).toBeInTheDocument();
+        expect(screen.getByText("No Directives Queued")).toBeInTheDocument();
         expect(
-            screen.getByText("Tasks appear when agents start working"),
+            screen.getByText("Tasks will manifest here upon swarm initialization."),
         ).toBeInTheDocument();
     });
 
     it("renders Task Board heading", () => {
         render(<KanbanBoard />);
-        expect(screen.getByText("Task Board")).toBeInTheDocument();
+        expect(screen.getByText("Swarm Task Board")).toBeInTheDocument();
     });
 
     it("shows column item counts", () => {

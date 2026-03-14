@@ -6,13 +6,13 @@ Extracted from graph.py for reuse across agents and tests.
 from __future__ import annotations
 
 from typing import Annotated, TypedDict
-
+from langgraph.graph.message import add_messages
 
 class OfficeState(TypedDict):
     """Global office state tracked across all execution turns."""
 
     active_tasks: list[str]
-    messages: Annotated[list, "messages"]
+    messages: Annotated[list, add_messages]
     routing_decisions: dict
     delegated_agents: list[str]
     delegated_task_ids: list[str]
@@ -24,6 +24,7 @@ class OfficeState(TypedDict):
     comms_processed: int
     kb_entries_organized: int
     current_goal: str
+    test_results: dict
     error: str
 
 
@@ -43,5 +44,6 @@ def create_initial_state(goal: str = "") -> OfficeState:
         comms_processed=0,
         kb_entries_organized=0,
         current_goal=goal,
+        test_results={},
         error="",
     )

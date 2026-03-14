@@ -9,6 +9,7 @@ import asyncio
 import logging
 from typing import Any, Protocol
 
+import httpx
 from core.state import create_initial_state
 from models import AgentStatusEnum, TaskStatusEnum
 
@@ -306,7 +307,7 @@ class AgentTaskDispatcher:
                 "task_completed",
                 {"task_id": task_id, "title": task.get("title", "")},
             )
-        except Exception as exc:
+        except (httpx.RequestError, RuntimeError, ValueError, KeyError, TypeError) as exc:
             logger.error(
                 "Agent task execution failed for %s on %s: %s", agent_id, task_id, exc
             )
@@ -383,6 +384,6 @@ class AgentTaskDispatcher:
             except asyncio.CancelledError:
                 logger.info("[Dispatcher] Agent task dispatcher shutting down")
                 return
-            except Exception as exc:
+            except (httpx.RequestError, RuntimeError, ValueError, KeyError, TypeError) as exc:
                 logger.error("[Dispatcher] Error while dispatching tasks: %s", exc)
                 await asyncio.sleep(2)
