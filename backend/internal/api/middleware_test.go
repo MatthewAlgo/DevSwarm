@@ -93,3 +93,22 @@ func TestAuthMiddlewareRejectsMissingToken(t *testing.T) {
 		t.Errorf("Status: got %d, want %d", rr.Code, http.StatusUnauthorized)
 	}
 }
+
+func TestAuthMiddlewareAllowsServiceTokenWithoutJWTSecret(t *testing.T) {
+	t.Setenv("JWT_SECRET", "")
+	t.Setenv("SERVICE_TOKEN", "devswarm-secret-key")
+
+	handler := AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/tasks", nil)
+	req.Header.Set("Authorization", "Bearer devswarm-secret-key")
+	rr := httptest.NewRecorder()
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("Status: got %d, want %d", rr.Code, http.StatusOK)
+	}
+}
