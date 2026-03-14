@@ -40,13 +40,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		secret := os.Getenv("JWT_SECRET")
-		if secret == "" {
-			log.Println("[Auth] JWT_SECRET is not set")
-			http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
-			return
-		}
-
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			http.Error(w, `{"error": "Unauthorized"}`, http.StatusUnauthorized)
@@ -62,6 +55,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 		if tokenString == serviceToken {
 			next.ServeHTTP(w, r)
+			return
+		}
+
+		secret := os.Getenv("JWT_SECRET")
+		if secret == "" {
+			log.Println("[Auth] JWT_SECRET is not set")
+			http.Error(w, `{"error": "Internal Server Error"}`, http.StatusInternalServerError)
 			return
 		}
 
