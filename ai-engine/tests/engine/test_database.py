@@ -33,8 +33,11 @@ class TestGetPool:
         assert isinstance(client, httpx.AsyncClient)
         assert str(client.base_url) == "http://backend:8080/api/"
         
-        # Verify JWT header is set
-        auth_header = client.headers.get("Authorization")
+        # Verify JWT header is set via hook
+        request = httpx.Request("GET", "http://backend:8080/api/test")
+        await db._inject_auth(request)
+        
+        auth_header = request.headers.get("Authorization")
         assert auth_header is not None
         assert auth_header.startswith("Bearer ")
         
