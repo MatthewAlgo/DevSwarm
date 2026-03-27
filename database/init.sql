@@ -79,7 +79,7 @@ CREATE TABLE agent_costs (
     input_tokens INTEGER DEFAULT 0,
     output_tokens INTEGER DEFAULT 0,
     cost_usd DECIMAL(10, 6) DEFAULT 0,
-    model VARCHAR(100) DEFAULT 'gemini-1.5-flash',
+    model VARCHAR(100) DEFAULT 'gemini-2.5-pro',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

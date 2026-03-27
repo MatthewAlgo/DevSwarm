@@ -61,3 +61,27 @@ class TestReviewerAgent:
         assert len(dev_msgs) == 1
         assert dev_msgs[0]["message_type"] == "delegation"
         assert "Review failed" in result["error"]
+
+    async def test_security_rejection_loops_back_to_developer(self, mock_context, base_state):
+        """Reviewer should loop back to developer when security vulnerabilities are found."""
+        output = ReviewerOutput(
+            thought_process="High-risk security vulnerability found.",
+            overall_verdict="request_changes",
+            summary="SQL Injection vulnerability detected in query construction.",
+            comments=[
+                ReviewComment(file_path="db.py", severity="critical", comment="SQL Injection: User input directly interpolated into query.")
+            ],
+            loop_back_to_developer=True
+        )
+        agent = ReviewerAgent(context=mock_context)
+        agent._chain = make_mock_chain(output)
+
+        result = await agent.process(base_state)
+
+        dev_msgs = [
+            m for m in mock_context.messages if m["to_agent"] == "developer"
+        ]
+        assert len(dev_msgs) == 1
+        assert dev_msgs[0]["message_type"] == "delegation"
+        assert "Review failed" in result["error"]
+        assert "SQL Injection" in result["error"]

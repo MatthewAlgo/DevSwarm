@@ -27,6 +27,30 @@ class DateTimeEncoder(json.JSONEncoder):
 
 _client: Optional[httpx.AsyncClient] = None
 
+
+def _generate_auth_header() -> str:
+    """Generate a fresh JWT Bearer token for backend communication."""
+    secret = os.getenv("JWT_SECRET")
+    if not secret:
+        logger.error("JWT_SECRET is not set, API calls will fail")
+        return ""
+    token = jwt.encode(
+        {
+            "iss": "ai-engine",
+            "aud": "backend",
+            "exp": time.time() + 300,  # 5 minutes
+        },
+        secret,
+        algorithm="HS256",
+    )
+    return f"Bearer {token}"
+
+
+async def _inject_auth(request: httpx.Request) -> None:
+    """httpx event hook that injects a fresh JWT on every outgoing request."""
+    request.headers["Authorization"] = _generate_auth_header()
+
+
 async def get_pool() -> httpx.AsyncClient:
     """Get or create the HTTP client for Go Backend communication.
     (Kept named get_pool for compatibility but returns an httpx client)
@@ -34,28 +58,12 @@ async def get_pool() -> httpx.AsyncClient:
     global _client
     if _client is None:
         base_url = os.getenv("API_BASE_URL", "http://backend:8080/api")
-        
-        # Generate JWT token
-        secret = os.getenv("JWT_SECRET")
-        if not secret:
-            logger.error("JWT_SECRET is not set, API calls will fail")
-            token_string = ""
-        else:
-            token = jwt.encode(
-                {
-                    "iss": "ai-engine",
-                    "aud": "backend",
-                    "exp": time.time() + 300  # 5 minutes
-                },
-                secret,
-                algorithm="HS256"
-            )
-            token_string = f"Bearer {token}"
-            
+
         _client = httpx.AsyncClient(
             base_url=base_url,
-            headers={"Authorization": token_string, "Content-Type": "application/json"},
-            timeout=10.0
+            headers={"Content-Type": "application/json"},
+            timeout=10.0,
+            event_hooks={"request": [_inject_auth]},
         )
         logger.info(f"API client initialized pointing to {base_url}")
     return _client
@@ -227,8 +235,8 @@ async def create_task(
         "description": description,
         "status": status,
         "priority": priority,
-        "created_by": created_by or "system",
-        "assigned_agents": assigned_agents or []
+        "createdBy": created_by or "system",
+        "assignedAgents": assigned_agents or []
     }
     resp = await client.post("/tasks", json=payload)
     resp.raise_for_status()
@@ -238,7 +246,7 @@ async def create_task(
 async def update_task_status(task_id: str, status: str) -> None:
     """Update a task's Kanban status."""
     client = await get_pool()
-    resp = await client.patch(f"/tasks/{task_id}/status", params={"status": status})
+    resp = await client.patch(f"/tasks/{task_id}/status", json={"status": status})
     resp.raise_for_status()
 
 
@@ -251,10 +259,10 @@ async def create_message(
     """Create an inter-agent message."""
     client = await get_pool()
     payload = {
-        "from_agent": from_agent,
-        "to_agent": to_agent,
+        "fromAgent": from_agent,
+        "toAgent": to_agent,
         "content": content,
-        "message_type": message_type
+        "messageType": message_type
     }
     resp = await client.post("/messages", json=payload)
     resp.raise_for_status()
