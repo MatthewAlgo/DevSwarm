@@ -8,6 +8,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 from typing import Optional
+import os
 
 from pydantic import BaseModel, Field
 
@@ -144,7 +145,7 @@ class AgentCostRecord(BaseModel):
     input_tokens: int = Field(0, alias="totalInput")
     output_tokens: int = Field(0, alias="totalOutput")
     cost_usd: float = Field(0.0, alias="totalCost")
-    model: str = "gemini-3-flash-preview"
+    model: str = Field(default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-2.5-pro"))
 
     class Config:
         populate_by_name = True

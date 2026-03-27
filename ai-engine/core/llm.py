@@ -14,7 +14,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 logger = logging.getLogger("devswarm.core.llm")
 
 # Default model configuration
-DEFAULT_MODEL = "gemini-3-flash-preview"
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-pro")
 DEFAULT_TEMPERATURE = 0.7
 DEFAULT_MAX_TOKENS = 4096
 

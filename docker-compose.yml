@@ -36,6 +36,7 @@ services:
     environment:
       - API_BASE_URL=http://backend:8080/api
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-pro}
       - REDIS_URL=redis://redis:6379/0
       - HOST_WORKSPACE_VOLUME=agent_workspace
       - JWT_SECRET=${JWT_SECRET:-super_secret_devswarm_key_123}
