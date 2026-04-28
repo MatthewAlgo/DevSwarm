@@ -18,7 +18,7 @@ logger = logging.getLogger("devswarm.simulate_day")
 
 API_ENDPOINT = os.getenv("AI_ENGINE_URL", "http://localhost:8000")
 AUTH_HEADERS = {
-    "Authorization": os.getenv("API_AUTH_TOKEN", "Bearer devswarm-secret-key")
+    "Authorization": os.getenv("API_AUTH_TOKEN", "Bearer REPLACE_WITH_SECURE_TOKEN")
 }
 
 

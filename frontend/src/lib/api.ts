@@ -69,7 +69,7 @@ async function fetchWithFallback(
     : new Error(`Failed to fetch API endpoint: ${path}`);
 }
 
-const TOKEN = "Bearer devswarm-secret-key";
+const TOKEN = "Bearer REPLACE_WITH_SECURE_TOKEN";
 
 async function get<T>(path: string): Promise<T> {
   const r = await fetchWithFallback(path, {

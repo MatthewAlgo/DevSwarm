@@ -106,7 +106,8 @@ func TestListAgentsIntegration(t *testing.T) {
 
 	// Create Request
 	req := httptest.NewRequest("GET", "/api/agents", nil)
-	req.Header.Set("Authorization", "Bearer devswarm-secret-key")
+	os.Setenv("SERVICE_TOKEN", "test-token")
+	req.Header.Set("Authorization", "Bearer test-token")
 	w := httptest.NewRecorder()
 
 	// Execute

@@ -50,10 +50,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		// Accept a known static service token for internal calls
 		serviceToken := os.Getenv("SERVICE_TOKEN")
-		if serviceToken == "" {
-			serviceToken = "devswarm-secret-key"
-		}
-		if tokenString == serviceToken {
+		if serviceToken != "" && tokenString == serviceToken {
 			next.ServeHTTP(w, r)
 			return
 		}

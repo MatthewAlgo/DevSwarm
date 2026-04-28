@@ -100,7 +100,7 @@ Must remain available unless deliberately versioned and migrated:
 
 ## Auth invariants (current implementation)
 - Static bearer token expected by both gateway and AI engine protected routes:
-  - `Bearer devswarm-secret-key`
+  - `Bearer secure-token`
 - Frontend simulated auth (`AuthProvider`) is independent of API bearer validation.
 
 ## Naming/casing invariants
@@ -314,15 +314,15 @@ curl http://localhost:8000/health
 
 ## Authenticated API probes
 ```bash
-curl -H 'Authorization: Bearer devswarm-secret-key' http://localhost:8080/api/agents
-curl -H 'Authorization: Bearer devswarm-secret-key' http://localhost:8080/api/state
-curl -H 'Authorization: Bearer devswarm-secret-key' http://localhost:8080/api/mcp/tools
+curl -H 'Authorization: Bearer secure-token' http://localhost:8080/api/agents
+curl -H 'Authorization: Bearer secure-token' http://localhost:8080/api/state
+curl -H 'Authorization: Bearer secure-token' http://localhost:8080/api/mcp/tools
 ```
 
 ## Trigger orchestration
 ```bash
 curl -X POST http://localhost:8080/api/trigger \
-  -H 'Authorization: Bearer devswarm-secret-key' \
+  -H 'Authorization: Bearer secure-token' \
   -H 'Content-Type: application/json' \
   -d '{"goal":"Run a system health and research cycle"}'
 ```
@@ -330,11 +330,11 @@ curl -X POST http://localhost:8080/api/trigger \
 ## Trigger simulations
 ```bash
 curl -X POST http://localhost:8080/api/simulate/activity \
-  -H 'Authorization: Bearer devswarm-secret-key' \
+  -H 'Authorization: Bearer secure-token' \
   -H 'Content-Type: application/json' -d '{}'
 
 curl -X POST http://localhost:8080/api/simulate/demo-day \
-  -H 'Authorization: Bearer devswarm-secret-key' \
+  -H 'Authorization: Bearer secure-token' \
   -H 'Content-Type: application/json' -d '{}'
 ```
 
