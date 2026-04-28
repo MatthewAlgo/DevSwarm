@@ -264,7 +264,7 @@ The `OfficeState` is passed from node to node as a mutable dictionary. When an a
 ## 7. API And Transport Contracts
 ## Auth model (gateway and AI engine)
 - Protected routes require:
-  - `Authorization: Bearer devswarm-secret-key`
+  - `Authorization: Bearer secure-token`
 - Exempt routes:
   - Gateway: `/health`, `/api/health`
   - AI engine direct: `/health`, `/docs`, `/openapi.json`
@@ -408,7 +408,7 @@ Do not commit real secrets. Keep values in local `.env` only.
 | `GOOGLE_API_KEY` | AI engine | Gemini model auth | your key |
 | `REDIS_URL` | AI engine + Go backend | Redis connection URL | `redis://localhost:6379/0` |
 | `AI_ENGINE_URL` | Go backend proxy, simulation script | Upstream AI engine base URL | `http://localhost:8000` or compose DNS |
-| `API_AUTH_TOKEN` | `simulate_day.py` | Authorization header value | `Bearer devswarm-secret-key` |
+| `API_AUTH_TOKEN` | `simulate_day.py` | Authorization header value | `Bearer secure-token` |
 | `NEXT_PUBLIC_API_URL` | Frontend | Browser REST base | `http://localhost:8080/api` |
 | `NEXT_PUBLIC_WS_URL` | Frontend | Browser WS URL | `ws://localhost:8080/ws` |
 | `PORT` | Go backend | HTTP listen port | `8080` |
@@ -475,7 +475,7 @@ npm run dev
 ## Minimal smoke checks
 ```bash
 curl http://localhost:8080/health
-curl -H 'Authorization: Bearer devswarm-secret-key' http://localhost:8080/api/agents
+curl -H 'Authorization: Bearer secure-token' http://localhost:8080/api/agents
 ```
 
 ## 12. Command Reference
@@ -543,12 +543,12 @@ python simulate_day.py
 ## API trigger examples
 ```bash
 curl -X POST http://localhost:8080/api/trigger \
-  -H 'Authorization: Bearer devswarm-secret-key' \
+  -H 'Authorization: Bearer secure-token' \
   -H 'Content-Type: application/json' \
   -d '{"goal":"Research emerging multi-agent patterns"}'
 
 curl -X POST http://localhost:8080/api/simulate/demo-day \
-  -H 'Authorization: Bearer devswarm-secret-key' \
+  -H 'Authorization: Bearer secure-token' \
   -H 'Content-Type: application/json' \
   -d '{}'
 ```
@@ -651,7 +651,7 @@ curl http://localhost:8080/health
 3. Check browser console for WS reconnect loop.
 
 ### Trigger endpoint returns 401
-- Ensure `Authorization: Bearer devswarm-secret-key` is present.
+- Ensure `Authorization: Bearer secure-token` is present.
 
 ### No real-time deltas appearing
 - Check Redis health and logs.

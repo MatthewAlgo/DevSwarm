@@ -96,14 +96,14 @@ func TestAuthMiddlewareRejectsMissingToken(t *testing.T) {
 
 func TestAuthMiddlewareAllowsServiceTokenWithoutJWTSecret(t *testing.T) {
 	t.Setenv("JWT_SECRET", "")
-	t.Setenv("SERVICE_TOKEN", "devswarm-secret-key")
+	t.Setenv("SERVICE_TOKEN", "test-token")
 
 	handler := AuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
 	req := httptest.NewRequest(http.MethodGet, "/api/tasks", nil)
-	req.Header.Set("Authorization", "Bearer devswarm-secret-key")
+	req.Header.Set("Authorization", "Bearer test-token")
 	rr := httptest.NewRecorder()
 
 	handler.ServeHTTP(rr, req)

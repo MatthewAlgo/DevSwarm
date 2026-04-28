@@ -39,7 +39,7 @@ services:
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-pro}
       - REDIS_URL=redis://redis:6379/0
       - HOST_WORKSPACE_VOLUME=agent_workspace
-      - JWT_SECRET=${JWT_SECRET:-super_secret_devswarm_key_123}
+      - JWT_SECRET=${JWT_SECRET}
     ports:
       - "8000:8000"
     depends_on:
@@ -61,7 +61,7 @@ services:
       - DATABASE_URL=${DATABASE_URL_GO}
       - AI_ENGINE_URL=http://ai-engine:8000
       - REDIS_URL=redis://redis:6379/0
-      - JWT_SECRET=${JWT_SECRET:-super_secret_devswarm_key_123}
+      - JWT_SECRET=${JWT_SECRET}
     ports:
       - "8080:8080"
     depends_on:

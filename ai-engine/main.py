@@ -157,6 +157,12 @@ async def auth_middleware(request, call_next):
         return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
 
     token = auth_header[7:]
+    
+    # Optional static token for internal/simulation calls
+    service_token = os.getenv("SERVICE_TOKEN")
+    if service_token and token == service_token:
+        return await call_next(request)
+
     try:
         jwt.decode(token, secret, algorithms=["HS256"], audience="ai-engine")
     except jwt.InvalidTokenError as e:
