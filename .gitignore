@@ -27,3 +27,8 @@ pgdata/
 *.swp
 *.swo
 .DS_Store
+
+.bare/
+.worktrees/
+main/
+config-worktree/
