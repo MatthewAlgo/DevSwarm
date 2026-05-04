@@ -1,3 +1,4 @@
+name: devswarm_application_services
 services:
   db:
     image: postgres:15-alpine
